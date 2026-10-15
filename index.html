@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Visualizador de Estruturas de Dados e Algoritmos v2.1.0</title>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="light-theme">
+  <!-- Top App Header -->
+  <header class="app-header">
+    <div class="brand">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="5" r="3"></circle>
+        <circle cx="5" cy="19" r="3"></circle>
+        <circle cx="19" cy="19" r="3"></circle>
+        <line x1="12" y1="8" x2="5" y2="16"></line>
+        <line x1="12" y1="8" x2="19" y2="16"></line>
+      </svg>
+      <h1 id="appBrandTitle">Visualizador de Estruturas de Dados & Algoritmos</h1>
+      <span class="badge-version" id="appBrandVersion">v2.1.0</span>
+    </div>
+
+    <div class="header-actions">
+      <!-- Language Selector (pt-BR, en, es) -->
+      <select id="langSelect" class="select-custom" title="Mudar Idioma / Change Language">
+        <option value="pt-BR" selected>🇧🇷 Português (BR)</option>
+        <option value="en">🇺🇸 English</option>
+        <option value="es">🇪🇸 Español</option>
+      </select>
+
+      <!-- Theme Switcher -->
+      <button id="themeToggle" class="btn-action" title="Alternar Tema Claro / Escuro">
+        🌓
+      </button>
+
+      <!-- Drawer Toggle -->
+      <button id="btnToggleDrawer" class="btn-action" title="Alternar Painel de Explicações">
+        📖 Explicação
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Application Layout -->
+  <div class="app-layout">
+    <!-- Left Navigation Sidebar -->
+    <aside class="app-sidebar">
+      <div class="sidebar-section-title">Estruturas Principais</div>
+      <a class="nav-item active" data-category="avl">
+        <span>Árvore AVL (Fator de Balanço)</span>
+      </a>
+      <a class="nav-item" data-category="rbtree">
+        <span>Árvore Rubro-Negra (NIL Nodes)</span>
+      </a>
+      <a class="nav-item" data-category="arrays">
+        <span>Algoritmos em Arrays (Novo!)</span>
+      </a>
+      <a class="nav-item" data-category="sorting">
+        <span>Algoritmos de Ordenação</span>
+      </a>
+      <a class="nav-item" data-category="graphs">
+        <span>Algoritmos em Grafos (BFS/Dijkstra)</span>
+      </a>
+      <a class="nav-item" data-category="linear">
+        <span>Listas, Pilhas e Filas</span>
+      </a>
+      <a class="nav-item" data-category="heaps">
+        <span>Heaps e Filas de Prioridade</span>
+      </a>
+      <a class="nav-item" data-category="hashing">
+        <span>Tabelas Hash (Aberta / Fechada)</span>
+      </a>
+      <a class="nav-item" data-category="dp">
+        <span>Programação Dinâmica</span>
+      </a>
+    </aside>
+
+    <!-- Center Workspace -->
+    <main class="main-view">
+      <!-- Algorithm-specific Action Toolbar -->
+      <div class="algo-toolbar" id="algoToolbar">
+        <!-- Dynamically injected controls -->
+      </div>
+
+      <!-- Canvas Viewport -->
+      <div class="canvas-wrapper" id="canvasContainer">
+        <!-- Floating Infinite Zoom & Pan Controls -->
+        <div class="zoom-controls">
+          <button id="btnZoomIn" class="zoom-btn" title="Aumentar Zoom (+)">+</button>
+          <button id="btnZoomOut" class="zoom-btn" title="Diminuir Zoom (-)">−</button>
+          <button id="btnZoomReset" class="zoom-btn" title="Ajustar / 100%">1:1</button>
+        </div>
+      </div>
+
+      <!-- Bottom Playback & Animation Timeline Bar -->
+      <div class="playback-bar">
+        <div class="playback-controls">
+          <!-- Step Backward -->
+          <button id="btnStepBack" class="playback-btn" title="Passo Anterior (Voltar)">⏮</button>
+          <!-- Play / Pause -->
+          <button id="btnPlayPause" class="playback-btn btn-play-pause" title="Reproduzir / Pausar">
+            <span>▶</span>
+          </button>
+          <!-- Step Forward -->
+          <button id="btnStepForward" class="playback-btn" title="Próximo Passo (Avançar)">⏭</button>
+          <!-- Skip to End -->
+          <button id="btnSkip" class="playback-btn" title="Pular para o Fim">⏭⏭</button>
+          <!-- Reset -->
+          <button id="btnReset" class="playback-btn" title="Reiniciar">↺</button>
+        </div>
+
+        <!-- Live Step Status Message -->
+        <div class="status-pill">
+          <div class="status-indicator" id="statusDot"></div>
+          <span id="statusMessage">Pronto para iniciar</span>
+        </div>
+
+        <!-- Metrics & Speed Slider -->
+        <div style="display:flex; align-items:center; gap:1.2rem;">
+          <div style="font-size:0.8rem; color:var(--text-secondary); display:flex; gap:0.8rem;">
+            <span>Passo: <strong id="stepCounter">0 / 0</strong></span>
+            <span>Comparações: <strong id="statComparisons">0</strong></span>
+            <span>Trocas: <strong id="statSwaps">0</strong></span>
+          </div>
+
+          <div class="speed-control">
+            <span>Velocidade:</span>
+            <input type="range" id="speedSlider" min="100" max="950" value="600" />
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Right Collapsible Explanation Drawer -->
+    <aside class="explanation-drawer" id="explanationDrawer">
+      <div class="drawer-header">
+        <h3 id="drawerTitle">Explicações & Complexidade</h3>
+      </div>
+      <div class="drawer-tabs">
+        <button class="drawer-tab active" data-tab="explanation">Conceito</button>
+        <button class="drawer-tab" data-tab="complexity">Complexidade</button>
+        <button class="drawer-tab" data-tab="pseudocode">Pseudocódigo</button>
+      </div>
+      <div class="drawer-content" id="drawerBody">
+        <!-- Content injected dynamically -->
+      </div>
+    </aside>
+  </div>
+
+  <!-- Standalone JS Bundle (No CORS restriction on file://) -->
+  <script src="bundle.js"></script>
+</body>
+</html>

@@ -1,0 +1,978 @@
+/**
+ * Data Structures & Algorithms Visualizer v2.0.0
+ * Main Application Controller & UI Coordinator
+ */
+
+import { I18N } from './i18n.js';
+import { VisualizerCanvas } from './core/canvas.js';
+import { Animator } from './core/animator.js';
+import { TreeAlgorithms } from './algorithms/trees.js';
+import { ArrayAlgorithms } from './algorithms/arrays.js';
+import { SortingAlgorithms } from './algorithms/sorting.js';
+import { GraphAlgorithms } from './algorithms/graphs.js';
+import { OtherAlgorithms } from './algorithms/others.js';
+
+class App {
+  constructor() {
+    this.currentLang = 'pt-BR';
+    this.currentCategory = 'avl';
+    this.drawerOpen = true;
+    this.activeDrawerTab = 'explanation';
+
+    // Sub-algorithm tracking for dynamic controls & pseudocodes
+    this.activeSortingAlgo = 'bubble';
+    this.sortOrder = 'asc';
+    this.activeLinearType = 'stack';
+    this.activeDpAlgo = 'fibonacci';
+
+    // Instantiate core components
+    this.canvas = new VisualizerCanvas('canvasContainer');
+    this.animator = new Animator(this.canvas);
+
+    // Instantiate algorithm engines
+    this.trees = new TreeAlgorithms();
+    this.arrays = new ArrayAlgorithms();
+    this.sorting = new SortingAlgorithms();
+    this.graphs = new GraphAlgorithms();
+    this.others = new OtherAlgorithms();
+
+    this.bindEvents();
+    this.updateLanguage(this.currentLang);
+    this.selectCategory('avl');
+  }
+
+  updateStatusDisplay(rawMsg) {
+    const el = document.getElementById('statusMessage');
+    if (!el) return;
+    if (!rawMsg) {
+      el.textContent = '';
+      return;
+    }
+
+    // Format rotation badges [ROTAÇÃO...]
+    let formatted = rawMsg.replace(/\[ROTAÇÃO[^\]]*\]/gi, (match) => {
+      return `<span class="badge-tag-rotation">${match}</span>`;
+    });
+
+    // Format recolor badges [RECOLORAÇÃO...]
+    formatted = formatted.replace(/\[RECOLORAÇÃO[^\]]*\]/gi, (match) => {
+      return `<span class="badge-tag-recolor">${match}</span>`;
+    });
+
+    // Format balance notices [BALANCEAMENTO...]
+    formatted = formatted.replace(/\[BALANCEAMENTO[^\]]*\]/gi, (match) => {
+      return `<span class="badge-tag-balance">${match}</span>`;
+    });
+
+    el.innerHTML = formatted;
+  }
+
+  bindEvents() {
+    // Language Selector
+    document.getElementById('langSelect').addEventListener('change', (e) => {
+      this.updateLanguage(e.target.value);
+    });
+
+    // Theme Toggle
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      document.body.classList.toggle('dark-theme');
+      this.canvas.render();
+    });
+
+    // Zoom Controls
+    document.getElementById('btnZoomIn').addEventListener('click', () => this.canvas.zoomIn());
+    document.getElementById('btnZoomOut').addEventListener('click', () => this.canvas.zoomOut());
+    document.getElementById('btnZoomReset').addEventListener('click', () => this.canvas.resetZoom());
+
+    // Playback Controls
+    const btnPlayPause = document.getElementById('btnPlayPause');
+    btnPlayPause.addEventListener('click', () => {
+      if (this.animator.isPlaying) {
+        this.animator.pause();
+      } else {
+        this.animator.play();
+      }
+    });
+
+    document.getElementById('btnStepForward').addEventListener('click', () => this.animator.stepForward());
+    document.getElementById('btnStepBack').addEventListener('click', () => this.animator.stepBackward());
+    document.getElementById('btnSkip').addEventListener('click', () => this.animator.skipToEnd());
+    document.getElementById('btnReset').addEventListener('click', () => this.animator.reset());
+
+    // Speed Slider
+    document.getElementById('speedSlider').addEventListener('input', (e) => {
+      // Invert value so right is fast, left is slow
+      const val = 1000 - Number(e.target.value);
+      this.animator.setSpeed(val);
+    });
+
+    // Animator callbacks
+    this.animator.onStatusChange = (status) => {
+      const icon = btnPlayPause.querySelector('span');
+      if (status === 'running') {
+        icon.textContent = '⏸';
+        document.getElementById('statusDot').style.background = '#10b981';
+      } else if (status === 'paused') {
+        icon.textContent = '▶';
+        document.getElementById('statusDot').style.background = '#ef4444';
+      } else {
+        icon.textContent = '▶';
+        document.getElementById('statusDot').style.background = '#64748b';
+      }
+    };
+
+    this.animator.onFrameChange = (data) => {
+      this.updateStatusDisplay(data.message || '');
+      document.getElementById('stepCounter').textContent = `${data.frameIndex + 1} / ${data.totalFrames}`;
+      if (data.comparisons !== undefined) {
+        document.getElementById('statComparisons').textContent = data.comparisons;
+      }
+      if (data.swaps !== undefined) {
+        document.getElementById('statSwaps').textContent = data.swaps;
+      }
+    };
+
+    // Sidebar Category clicks
+    document.querySelectorAll('.nav-item').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const cat = e.currentTarget.dataset.category;
+        this.selectCategory(cat);
+      });
+    });
+
+    // Drawer Tabs
+    document.querySelectorAll('.drawer-tab').forEach(tab => {
+      tab.addEventListener('click', (e) => {
+        document.querySelectorAll('.drawer-tab').forEach(t => t.classList.remove('active'));
+        e.currentTarget.classList.add('active');
+        this.activeDrawerTab = e.currentTarget.dataset.tab;
+        this.renderDrawerContent();
+      });
+    });
+
+    // Drawer Toggle Button
+    document.getElementById('btnToggleDrawer').addEventListener('click', () => {
+      const drawer = document.getElementById('explanationDrawer');
+      drawer.classList.toggle('collapsed');
+      this.drawerOpen = !drawer.classList.contains('collapsed');
+      setTimeout(() => this.canvas.initCanvasSize(), 260);
+    });
+  }
+
+  updateLanguage(lang) {
+    this.currentLang = lang;
+    const t = I18N[lang] || I18N['pt-BR'];
+
+    // Update document title and header brand
+    document.title = t.appName + ' ' + t.appVersion;
+    document.getElementById('appBrandTitle').textContent = t.appName;
+    document.getElementById('appBrandVersion').textContent = t.appVersion;
+
+    // Update Sidebar category names
+    for (const [key, label] of Object.entries(t.categories)) {
+      const item = document.querySelector(`.nav-item[data-category="${key}"] span`);
+      if (item) item.textContent = label;
+    }
+
+    // Update Drawer tabs
+    document.querySelector('.drawer-tab[data-tab="explanation"]').textContent = t.tabs.explanation;
+    document.querySelector('.drawer-tab[data-tab="complexity"]').textContent = t.tabs.complexity;
+    document.querySelector('.drawer-tab[data-tab="pseudocode"]').textContent = t.tabs.pseudocode;
+
+    // Refresh dynamic toolbar & drawer text
+    this.renderToolbar();
+    this.renderDrawerContent();
+  }
+
+  selectCategory(category) {
+    this.currentCategory = category;
+
+    // Update active nav item
+    document.querySelectorAll('.nav-item').forEach(el => {
+      el.classList.toggle('active', el.dataset.category === category);
+    });
+
+    this.renderToolbar();
+    this.renderDrawerContent();
+    this.loadInitialScene();
+  }
+
+  renderToolbar() {
+    const toolbar = document.getElementById('algoToolbar');
+    toolbar.innerHTML = '';
+    const t = I18N[this.currentLang];
+
+    if (this.currentCategory === 'avl') {
+      toolbar.innerHTML = `
+        <div class="input-group">
+          <input type="number" id="inputVal" class="input-custom" placeholder="Valor" />
+          <button id="btnInsert" class="btn-primary">${t.controls.insert}</button>
+          <button id="btnDelete" class="btn-secondary" style="border-color:#ef4444; color:#ef4444;">${t.controls.delete}</button>
+          <button id="btnRandomVal" class="btn-secondary">${t.controls.randomValue}</button>
+          <button id="btnBulkInsert" class="btn-secondary">${t.controls.randomSet}</button>
+          <button id="btnClearAvl" class="btn-secondary">${t.controls.clear}</button>
+        </div>
+        <div class="input-group">
+          <label style="font-size:0.8rem; font-weight:600;">${t.treeControls.bfConvention}</label>
+          <select id="selectBfConvention" class="select-custom">
+            <option value="leftMinusRight" ${this.trees.bfConvention === 'leftMinusRight' ? 'selected' : ''}>${t.treeControls.bfLeftMinusRight}</option>
+            <option value="rightMinusLeft" ${this.trees.bfConvention === 'rightMinusLeft' ? 'selected' : ''}>${t.treeControls.bfRightMinusLeft}</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label style="font-size:0.8rem; font-weight:600;">${t.treeControls.badgeModeLabel}</label>
+          <select id="selectBadgeMode" class="select-custom">
+            <option value="both" ${this.trees.badgeMode === 'both' ? 'selected' : ''}>${t.treeControls.badgeModeBoth}</option>
+            <option value="bfOnly" ${this.trees.badgeMode === 'bfOnly' ? 'selected' : ''}>${t.treeControls.badgeModeBf}</option>
+            <option value="heightOnly" ${this.trees.badgeMode === 'heightOnly' ? 'selected' : ''}>${t.treeControls.badgeModeHeight}</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <button id="btnToggleHeights" class="btn-secondary">${this.trees.showHeights ? t.treeControls.hideHeights : t.treeControls.showHeights}</button>
+        </div>
+      `;
+
+      document.getElementById('btnInsert').addEventListener('click', () => {
+        const val = document.getElementById('inputVal').value;
+        if (val !== '') {
+          const frames = this.trees.generateAvlInsertFrames(val);
+          this.animator.setTimeline(frames);
+          document.getElementById('inputVal').value = '';
+        }
+      });
+
+      document.getElementById('btnDelete').addEventListener('click', () => {
+        const val = document.getElementById('inputVal').value;
+        if (val !== '') {
+          const frames = this.trees.generateAvlDeleteFrames(val);
+          this.animator.setTimeline(frames);
+          document.getElementById('inputVal').value = '';
+        }
+      });
+
+      document.getElementById('btnRandomVal').addEventListener('click', () => {
+        const rand = Math.floor(Math.random() * 90) + 10;
+        document.getElementById('inputVal').value = rand;
+        const frames = this.trees.generateAvlInsertFrames(rand);
+        this.animator.setTimeline(frames);
+      });
+
+      document.getElementById('selectBfConvention').addEventListener('change', (e) => {
+        this.trees.setBfConvention(e.target.value);
+        const scene = this.trees.layoutTree(this.trees.avlRoot);
+        this.canvas.setScene(scene.elements, scene.links, scene.decorations);
+      });
+
+      document.getElementById('selectBadgeMode').addEventListener('change', (e) => {
+        this.trees.setBadgeMode(e.target.value);
+        const scene = this.trees.layoutTree(this.trees.avlRoot);
+        this.canvas.setScene(scene.elements, scene.links, scene.decorations);
+      });
+
+      document.getElementById('btnToggleHeights').addEventListener('click', () => {
+        this.trees.setShowHeights(!this.trees.showHeights);
+        this.renderToolbar();
+        const scene = this.trees.layoutTree(this.trees.avlRoot);
+        this.canvas.setScene(scene.elements, scene.links, scene.decorations);
+      });
+
+      document.getElementById('btnBulkInsert').addEventListener('click', () => {
+        const values = [50, 25, 75, 10, 30, 60, 90, 5, 20];
+        this.trees.clearAvl();
+        let allFrames = [];
+        for (const v of values) {
+          allFrames = allFrames.concat(this.trees.generateAvlInsertFrames(v));
+        }
+        this.animator.setTimeline(allFrames);
+      });
+
+      document.getElementById('btnClearAvl').addEventListener('click', () => {
+        this.animator.stop();
+        this.trees.clearAvl();
+        const scene = this.trees.layoutTree(this.trees.avlRoot);
+        this.canvas.setScene(scene.elements, scene.links, scene.decorations);
+      });
+
+    } else if (this.currentCategory === 'rbtree') {
+      toolbar.innerHTML = `
+        <div class="input-group">
+          <input type="number" id="inputVal" class="input-custom" placeholder="Valor" />
+          <button id="btnInsert" class="btn-primary">${t.controls.insert}</button>
+          <button id="btnDelete" class="btn-secondary" style="border-color:#ef4444; color:#ef4444;">${t.controls.delete}</button>
+          <button id="btnRandomVal" class="btn-secondary">${t.controls.randomValue}</button>
+          <button id="btnBulkInsert" class="btn-secondary">${t.controls.randomSet}</button>
+          <button id="btnClearRb" class="btn-secondary">${t.controls.clear}</button>
+        </div>
+        <div class="input-group">
+          <button id="btnToggleNil" class="btn-secondary">${this.trees.showNilNodes ? t.treeControls.hideNilNodes : t.treeControls.showNilNodes}</button>
+        </div>
+      `;
+
+      document.getElementById('btnInsert').addEventListener('click', () => {
+        const val = document.getElementById('inputVal').value;
+        if (val !== '') {
+          const frames = this.trees.generateRbInsertFrames(val);
+          this.animator.setTimeline(frames);
+          document.getElementById('inputVal').value = '';
+        }
+      });
+
+      document.getElementById('btnDelete').addEventListener('click', () => {
+        const val = document.getElementById('inputVal').value;
+        if (val !== '') {
+          const frames = this.trees.generateRbDeleteFrames(val);
+          this.animator.setTimeline(frames);
+          document.getElementById('inputVal').value = '';
+        }
+      });
+
+      document.getElementById('btnRandomVal').addEventListener('click', () => {
+        const rand = Math.floor(Math.random() * 90) + 10;
+        document.getElementById('inputVal').value = rand;
+        const frames = this.trees.generateRbInsertFrames(rand);
+        this.animator.setTimeline(frames);
+      });
+
+      document.getElementById('btnToggleNil').addEventListener('click', () => {
+        this.trees.setShowNilNodes(!this.trees.showNilNodes);
+        this.renderToolbar();
+        const scene = this.trees.layoutTree(this.trees.rbRoot, true);
+        this.canvas.setScene(scene.elements, scene.links, scene.decorations);
+      });
+
+      document.getElementById('btnBulkInsert').addEventListener('click', () => {
+        const values = [20, 10, 30, 5, 15, 25, 40];
+        this.trees.clearRb();
+        let allFrames = [];
+        for (const v of values) {
+          allFrames = allFrames.concat(this.trees.generateRbInsertFrames(v));
+        }
+        this.animator.setTimeline(allFrames);
+      });
+
+      document.getElementById('btnClearRb').addEventListener('click', () => {
+        this.animator.stop();
+        this.trees.clearRb();
+        const scene = this.trees.layoutTree(this.trees.rbRoot, true);
+        this.canvas.setScene(scene.elements, scene.links, scene.decorations);
+      });
+
+    } else if (this.currentCategory === 'arrays') {
+      toolbar.innerHTML = `
+        <div class="input-group">
+          <input type="number" id="inputTarget" class="input-custom" placeholder="Valor / Alvo" />
+          <button id="btnArrayInsert" class="btn-primary">${t.controls.insert}</button>
+          <button id="btnArrayDelete" class="btn-secondary" style="border-color:#ef4444; color:#ef4444;">${t.controls.delete}</button>
+          <button id="btnRandArray" class="btn-secondary">${t.controls.randomSet}</button>
+          <button id="btnClearArray" class="btn-secondary">${t.controls.clear}</button>
+        </div>
+        <div class="input-group">
+          <select id="selectArrayAlgo" class="select-custom">
+            <option value="linearSearch">Busca Linear</option>
+            <option value="binarySearch">Busca Binária (Array Ordenado)</option>
+            <option value="twoPointers">Dois Ponteiros (Inversão)</option>
+            <option value="slidingWindow">Janela Deslizante (Max Subarray k=3)</option>
+            <option value="kadane">Algoritmo de Kadane (Soma Máxima)</option>
+            <option value="dutchFlag">Bandeira Holandesa (Partição 3 Vias)</option>
+          </select>
+          <button id="btnRunArray" class="btn-primary">${t.controls.run}</button>
+        </div>
+      `;
+
+      document.getElementById('btnArrayInsert').addEventListener('click', () => {
+        const val = document.getElementById('inputTarget').value;
+        if (val !== '') {
+          const frames = this.arrays.insertElement(val);
+          this.animator.setTimeline(frames);
+          document.getElementById('inputTarget').value = '';
+        }
+      });
+
+      document.getElementById('btnArrayDelete').addEventListener('click', () => {
+        const val = document.getElementById('inputTarget').value;
+        if (val !== '') {
+          const frames = this.arrays.deleteElement(val);
+          this.animator.setTimeline(frames);
+          document.getElementById('inputTarget').value = '';
+        }
+      });
+
+      document.getElementById('btnRunArray').addEventListener('click', () => {
+        const algo = document.getElementById('selectArrayAlgo').value;
+        const target = document.getElementById('inputTarget').value || 42;
+        let frames = [];
+
+        if (algo === 'linearSearch') frames = this.arrays.generateLinearSearchFrames(target);
+        else if (algo === 'binarySearch') frames = this.arrays.generateBinarySearchFrames(target);
+        else if (algo === 'twoPointers') frames = this.arrays.generateReverseFrames();
+        else if (algo === 'slidingWindow') frames = this.arrays.generateSlidingWindowFrames(3);
+        else if (algo === 'kadane') frames = this.arrays.generateKadaneFrames();
+        else if (algo === 'dutchFlag') frames = this.arrays.generateDutchFlagFrames();
+
+        this.animator.setTimeline(frames);
+      });
+
+      document.getElementById('btnRandArray').addEventListener('click', () => {
+        this.animator.stop();
+        this.arrays.generateRandomArray();
+        const scene = this.arrays.buildScene(this.arrays.array);
+        this.canvas.setScene(scene.elements, scene.links, scene.decorations);
+      });
+
+      document.getElementById('btnClearArray').addEventListener('click', () => {
+        this.animator.stop();
+        this.arrays.clear();
+        const scene = this.arrays.buildScene(this.arrays.array);
+        this.canvas.setScene(scene.elements, scene.links, scene.decorations);
+      });
+
+    } else if (this.currentCategory === 'sorting') {
+      toolbar.innerHTML = `
+        <div class="input-group">
+          <input type="number" id="inputSortVal" class="input-custom" placeholder="Valor" style="width:75px;" />
+          <button id="btnAddSort" class="btn-primary">${t.controls.insert}</button>
+          <button id="btnRandSort" class="btn-secondary">${t.controls.randomSet}</button>
+          <button id="btnClearSort" class="btn-secondary">${t.controls.clear}</button>
+        </div>
+        <div class="input-group">
+          <select id="selectSortAlgo" class="select-custom">
+            <option value="bubble" ${this.activeSortingAlgo === 'bubble' ? 'selected' : ''}>Bubble Sort</option>
+            <option value="selection" ${this.activeSortingAlgo === 'selection' ? 'selected' : ''}>Selection Sort</option>
+            <option value="insertion" ${this.activeSortingAlgo === 'insertion' ? 'selected' : ''}>Insertion Sort</option>
+            <option value="quick" ${this.activeSortingAlgo === 'quick' ? 'selected' : ''}>Quick Sort</option>
+          </select>
+          <select id="selectSortOrder" class="select-custom">
+            <option value="asc" ${this.sortOrder === 'asc' ? 'selected' : ''}>Crescente (Asc)</option>
+            <option value="desc" ${this.sortOrder === 'desc' ? 'selected' : ''}>Decrescente (Desc)</option>
+          </select>
+          <button id="btnRunSort" class="btn-primary">Ordenar</button>
+        </div>
+      `;
+
+      document.getElementById('selectSortAlgo').addEventListener('change', (e) => {
+        this.activeSortingAlgo = e.target.value;
+        this.renderDrawerContent();
+      });
+
+      document.getElementById('selectSortOrder').addEventListener('change', (e) => {
+        this.sortOrder = e.target.value;
+      });
+
+      document.getElementById('btnAddSort').addEventListener('click', () => {
+        const val = document.getElementById('inputSortVal').value;
+        if (val !== '') {
+          const scene = this.sorting.addElement(val);
+          this.canvas.setScene(scene.elements, scene.links, scene.decorations);
+          document.getElementById('inputSortVal').value = '';
+        }
+      });
+
+      document.getElementById('btnRunSort').addEventListener('click', () => {
+        let frames = [];
+        if (this.activeSortingAlgo === 'bubble') {
+          frames = this.sorting.generateBubbleSortFrames(this.sorting.array, this.sortOrder);
+        } else if (this.activeSortingAlgo === 'selection') {
+          frames = this.sorting.generateSelectionSortFrames(this.sorting.array, this.sortOrder);
+        } else if (this.activeSortingAlgo === 'insertion') {
+          frames = this.sorting.generateInsertionSortFrames(this.sorting.array, this.sortOrder);
+        } else if (this.activeSortingAlgo === 'quick') {
+          frames = this.sorting.generateQuickSortFrames(this.sorting.array, this.sortOrder);
+        }
+        this.animator.setTimeline(frames);
+      });
+
+      document.getElementById('btnClearSort').addEventListener('click', () => {
+        this.animator.stop();
+        this.sorting.clear();
+        const scene = this.sorting.buildScene(this.sorting.array);
+        this.canvas.setScene(scene.elements, scene.links, scene.decorations);
+      });
+
+      document.getElementById('btnRandSort').addEventListener('click', () => {
+        this.animator.stop();
+        this.sorting.generateRandomArray();
+        const scene = this.sorting.buildScene(this.sorting.array);
+        this.canvas.setScene(scene.elements, scene.links, scene.decorations);
+      });
+
+    } else if (this.currentCategory === 'graphs') {
+      const vOptions = this.graphs.vertices.map(v => `<option value="${v.id}">${v.label || v.id}</option>`).join('');
+      toolbar.innerHTML = `
+        <div class="input-group">
+          <input type="text" id="inputVertexLabel" class="input-custom" placeholder="Rótulo (ex: E)" style="width:105px;" />
+          <button id="btnAddVertex" class="btn-primary">+ Vértice</button>
+        </div>
+        <div class="input-group">
+          <select id="selectEdgeU" class="select-custom" style="min-width:55px;">${vOptions}</select>
+          <span style="font-size:0.85rem; font-weight:bold; color:var(--text-secondary);">➔</span>
+          <select id="selectEdgeV" class="select-custom" style="min-width:55px;">${vOptions}</select>
+          <input type="number" id="inputEdgeWeight" class="input-custom" placeholder="Peso" value="1" style="width:55px;" />
+          <button id="btnAddEdge" class="btn-primary">+ Aresta</button>
+        </div>
+        <div class="input-group">
+          <button id="btnBfs" class="btn-primary">BFS (Largura)</button>
+          <button id="btnDijkstra" class="btn-primary">Dijkstra</button>
+          <button id="btnRandGraph" class="btn-secondary">${t.graphControls.newGraph}</button>
+          <button id="btnClearGraph" class="btn-secondary">${t.controls.clear}</button>
+        </div>
+      `;
+
+      document.getElementById('btnAddVertex').addEventListener('click', () => {
+        const label = document.getElementById('inputVertexLabel').value;
+        this.graphs.addVertex(label);
+        const scene = this.graphs.buildScene();
+        this.canvas.setScene(scene.elements, scene.links, scene.decorations);
+        this.renderToolbar();
+      });
+
+      document.getElementById('btnAddEdge').addEventListener('click', () => {
+        const u = Number(document.getElementById('selectEdgeU').value);
+        const v = Number(document.getElementById('selectEdgeV').value);
+        const w = Number(document.getElementById('inputEdgeWeight').value || 1);
+        if (!isNaN(u) && !isNaN(v)) {
+          this.graphs.addEdge(u, v, w);
+          const scene = this.graphs.buildScene();
+          this.canvas.setScene(scene.elements, scene.links, scene.decorations);
+        }
+      });
+
+      document.getElementById('btnBfs').addEventListener('click', () => {
+        const startId = this.graphs.vertices.length > 0 ? this.graphs.vertices[0].id : 0;
+        this.animator.setTimeline(this.graphs.generateBfsFrames(startId));
+      });
+      document.getElementById('btnDijkstra').addEventListener('click', () => {
+        const startId = this.graphs.vertices.length > 0 ? this.graphs.vertices[0].id : 0;
+        this.animator.setTimeline(this.graphs.generateDijkstraFrames(startId));
+      });
+      document.getElementById('btnRandGraph').addEventListener('click', () => {
+        this.animator.stop();
+        this.graphs.generateRandomGraph();
+        const scene = this.graphs.buildScene();
+        this.canvas.setScene(scene.elements, scene.links, scene.decorations);
+        this.renderToolbar();
+      });
+      document.getElementById('btnClearGraph').addEventListener('click', () => {
+        this.animator.stop();
+        this.graphs.clear();
+        const scene = this.graphs.buildScene();
+        this.canvas.setScene(scene.elements, scene.links, scene.decorations);
+        this.renderToolbar();
+      });
+
+    } else if (this.currentCategory === 'linear') {
+      toolbar.innerHTML = `
+        <div class="input-group">
+          <label style="font-size:0.85rem; font-weight:600;">Estrutura:</label>
+          <select id="selectLinearType" class="select-custom">
+            <option value="stack" ${this.activeLinearType === 'stack' ? 'selected' : ''}>Pilha (Stack - LIFO)</option>
+            <option value="queue" ${this.activeLinearType === 'queue' ? 'selected' : ''}>Fila (Queue - FIFO)</option>
+            <option value="linkedList" ${this.activeLinearType === 'linkedList' ? 'selected' : ''}>Lista Encadeada Simples</option>
+          </select>
+        </div>
+        <div class="input-group" id="linearControlsContainer">
+          <!-- Dynamically populated below -->
+        </div>
+      `;
+
+      const controlsContainer = document.getElementById('linearControlsContainer');
+
+      if (this.activeLinearType === 'stack') {
+        controlsContainer.innerHTML = `
+          <input type="number" id="inputVal" class="input-custom" placeholder="Valor" style="width:75px;" />
+          <button id="btnPush" class="btn-primary">Push (Empilhar)</button>
+          <button id="btnPop" class="btn-secondary" style="border-color:#ef4444; color:#ef4444;">Pop (Desempilhar)</button>
+          <button id="btnRandLinear" class="btn-secondary">${t.controls.randomValue}</button>
+          <button id="btnClearLinear" class="btn-secondary">${t.controls.clear}</button>
+        `;
+
+        document.getElementById('btnPush').addEventListener('click', () => {
+          const val = document.getElementById('inputVal').value;
+          if (val !== '') {
+            this.animator.setTimeline(this.others.generateStackPushFrames(val));
+            document.getElementById('inputVal').value = '';
+          }
+        });
+        document.getElementById('btnPop').addEventListener('click', () => {
+          this.animator.setTimeline(this.others.generateStackPopFrames());
+        });
+        document.getElementById('btnRandLinear').addEventListener('click', () => {
+          const rand = Math.floor(Math.random() * 90) + 10;
+          document.getElementById('inputVal').value = rand;
+          this.animator.setTimeline(this.others.generateStackPushFrames(rand));
+        });
+        document.getElementById('btnClearLinear').addEventListener('click', () => {
+          this.animator.stop();
+          this.others.clearStack();
+          this.canvas.setScene(this.others.renderStack(this.others.stack, null), []);
+        });
+
+      } else if (this.activeLinearType === 'queue') {
+        controlsContainer.innerHTML = `
+          <input type="number" id="inputVal" class="input-custom" placeholder="Valor" style="width:75px;" />
+          <button id="btnEnqueue" class="btn-primary">Enqueue (Entrar)</button>
+          <button id="btnDequeue" class="btn-secondary" style="border-color:#ef4444; color:#ef4444;">Dequeue (Sair)</button>
+          <button id="btnRandLinear" class="btn-secondary">${t.controls.randomValue}</button>
+          <button id="btnClearLinear" class="btn-secondary">${t.controls.clear}</button>
+        `;
+
+        document.getElementById('btnEnqueue').addEventListener('click', () => {
+          const val = document.getElementById('inputVal').value;
+          if (val !== '') {
+            this.animator.setTimeline(this.others.generateQueueEnqueueFrames(val));
+            document.getElementById('inputVal').value = '';
+          }
+        });
+        document.getElementById('btnDequeue').addEventListener('click', () => {
+          this.animator.setTimeline(this.others.generateQueueDequeueFrames());
+        });
+        document.getElementById('btnRandLinear').addEventListener('click', () => {
+          const rand = Math.floor(Math.random() * 90) + 10;
+          document.getElementById('inputVal').value = rand;
+          this.animator.setTimeline(this.others.generateQueueEnqueueFrames(rand));
+        });
+        document.getElementById('btnClearLinear').addEventListener('click', () => {
+          this.animator.stop();
+          this.others.clearQueue();
+          this.canvas.setScene(this.others.renderQueue(this.others.queue, null), []);
+        });
+
+      } else if (this.activeLinearType === 'linkedList') {
+        controlsContainer.innerHTML = `
+          <input type="number" id="inputVal" class="input-custom" placeholder="Valor" style="width:75px;" />
+          <button id="btnInsertHead" class="btn-primary">+ Início (Head)</button>
+          <button id="btnInsertTail" class="btn-primary">+ Fim (Tail)</button>
+          <button id="btnDeleteHead" class="btn-secondary" style="border-color:#ef4444; color:#ef4444;">- Início</button>
+          <button id="btnDeleteTail" class="btn-secondary" style="border-color:#ef4444; color:#ef4444;">- Fim</button>
+          <button id="btnSearchList" class="btn-secondary">Buscar</button>
+          <button id="btnRandLinear" class="btn-secondary">${t.controls.randomValue}</button>
+          <button id="btnClearLinear" class="btn-secondary">${t.controls.clear}</button>
+        `;
+
+        document.getElementById('btnInsertHead').addEventListener('click', () => {
+          const val = document.getElementById('inputVal').value;
+          if (val !== '') {
+            this.animator.setTimeline(this.others.generateListInsertHeadFrames(val));
+            document.getElementById('inputVal').value = '';
+          }
+        });
+        document.getElementById('btnInsertTail').addEventListener('click', () => {
+          const val = document.getElementById('inputVal').value;
+          if (val !== '') {
+            this.animator.setTimeline(this.others.generateListInsertTailFrames(val));
+            document.getElementById('inputVal').value = '';
+          }
+        });
+        document.getElementById('btnDeleteHead').addEventListener('click', () => {
+          this.animator.setTimeline(this.others.generateListDeleteHeadFrames());
+        });
+        document.getElementById('btnDeleteTail').addEventListener('click', () => {
+          this.animator.setTimeline(this.others.generateListDeleteTailFrames());
+        });
+        document.getElementById('btnSearchList').addEventListener('click', () => {
+          const val = document.getElementById('inputVal').value;
+          if (val !== '') {
+            this.animator.setTimeline(this.others.generateListSearchFrames(val));
+          }
+        });
+        document.getElementById('btnRandLinear').addEventListener('click', () => {
+          const rand = Math.floor(Math.random() * 90) + 10;
+          document.getElementById('inputVal').value = rand;
+          this.animator.setTimeline(this.others.generateListInsertTailFrames(rand));
+        });
+        document.getElementById('btnClearLinear').addEventListener('click', () => {
+          this.animator.stop();
+          this.others.clearList();
+          const scene = this.others.renderLinkedList(this.others.linkedList, null);
+          this.canvas.setScene(scene.elements, scene.links, scene.decorations);
+        });
+      }
+
+      document.getElementById('selectLinearType').addEventListener('change', (e) => {
+        this.activeLinearType = e.target.value;
+        this.loadInitialScene();
+        this.renderToolbar();
+        this.renderDrawerContent();
+      });
+
+    } else if (this.currentCategory === 'heaps') {
+      toolbar.innerHTML = `
+        <div class="input-group">
+          <input type="number" id="inputVal" class="input-custom" placeholder="Valor" />
+          <button id="btnInsertHeap" class="btn-primary">${t.controls.insert}</button>
+          <button id="btnExtractHeap" class="btn-secondary" style="border-color:#ef4444; color:#ef4444;">Extrair Mínimo (Raiz)</button>
+          <button id="btnRandHeapVal" class="btn-secondary">${t.controls.randomValue}</button>
+          <button id="btnRandHeapSet" class="btn-secondary">${t.controls.randomSet}</button>
+          <button id="btnClearHeap" class="btn-secondary">${t.controls.clear}</button>
+        </div>
+      `;
+
+      document.getElementById('btnInsertHeap').addEventListener('click', () => {
+        const val = document.getElementById('inputVal').value;
+        if (val !== '') {
+          this.animator.setTimeline(this.others.generateHeapInsertFrames(val));
+          document.getElementById('inputVal').value = '';
+        }
+      });
+      document.getElementById('btnExtractHeap').addEventListener('click', () => {
+        this.animator.setTimeline(this.others.generateHeapExtractFrames());
+      });
+      document.getElementById('btnRandHeapVal').addEventListener('click', () => {
+        const rand = Math.floor(Math.random() * 90) + 10;
+        document.getElementById('inputVal').value = rand;
+        this.animator.setTimeline(this.others.generateHeapInsertFrames(rand));
+      });
+      document.getElementById('btnRandHeapSet').addEventListener('click', () => {
+        this.animator.stop();
+        const scene = this.others.generateRandomHeap(7);
+        this.canvas.setScene(scene.elements, scene.links);
+      });
+      document.getElementById('btnClearHeap').addEventListener('click', () => {
+        this.animator.stop();
+        this.others.clearHeap();
+        const scene = this.others.renderHeapScene(this.others.heap, null);
+        this.canvas.setScene(scene.elements, scene.links);
+      });
+
+    } else if (this.currentCategory === 'hashing') {
+      toolbar.innerHTML = `
+        <div class="input-group">
+          <input type="number" id="inputVal" class="input-custom" placeholder="Chave" />
+          <select id="selectHashTech" class="select-custom">
+            <option value="linear">Sondagem Linear [h(k) + i]</option>
+            <option value="quadratic">Sondagem Quadrática [h(k) + i²]</option>
+            <option value="double">Duplo Hashing</option>
+          </select>
+          <button id="btnInsertHash" class="btn-primary">${t.controls.insert}</button>
+          <button id="btnDeleteHash" class="btn-secondary" style="border-color:#ef4444; color:#ef4444;">${t.controls.delete}</button>
+          <button id="btnRandHash" class="btn-secondary">${t.controls.randomValue}</button>
+          <button id="btnClearHash" class="btn-secondary">${t.controls.clear}</button>
+        </div>
+      `;
+
+      document.getElementById('btnInsertHash').addEventListener('click', () => {
+        const val = document.getElementById('inputVal').value;
+        const tech = document.getElementById('selectHashTech').value;
+        if (val !== '') {
+          this.animator.setTimeline(this.others.generateHashInsertFrames(val, tech));
+          document.getElementById('inputVal').value = '';
+        }
+      });
+      document.getElementById('btnDeleteHash').addEventListener('click', () => {
+        const val = document.getElementById('inputVal').value;
+        const tech = document.getElementById('selectHashTech').value;
+        if (val !== '') {
+          this.animator.setTimeline(this.others.generateHashDeleteFrames(val, tech));
+        }
+      });
+      document.getElementById('btnRandHash').addEventListener('click', () => {
+        const rand = Math.floor(Math.random() * 90) + 10;
+        document.getElementById('inputVal').value = rand;
+        const tech = document.getElementById('selectHashTech').value;
+        this.animator.setTimeline(this.others.generateHashInsertFrames(rand, tech));
+      });
+      document.getElementById('btnClearHash').addEventListener('click', () => {
+        this.animator.stop();
+        this.others.clearHash();
+        const scene = this.others.renderHashScene(this.others.hashTable, null);
+        this.canvas.setScene(scene.elements, scene.links, scene.decorations);
+      });
+
+    } else if (this.currentCategory === 'dp') {
+      toolbar.innerHTML = `
+        <div class="input-group">
+          <label style="font-size:0.85rem; font-weight:600;">Algoritmo:</label>
+          <select id="selectDpAlgo" class="select-custom">
+            <option value="fibonacci" ${this.activeDpAlgo === 'fibonacci' ? 'selected' : ''}>Fibonacci (Bottom-Up)</option>
+            <option value="knapsack" ${this.activeDpAlgo === 'knapsack' ? 'selected' : ''}>Mochila 0/1 (Knapsack)</option>
+            <option value="coinChange" ${this.activeDpAlgo === 'coinChange' ? 'selected' : ''}>Troco Mínimo (Coin Change)</option>
+          </select>
+        </div>
+        <div class="input-group" id="dpControlsContainer">
+          <!-- Dynamically populated below -->
+        </div>
+      `;
+
+      const dpContainer = document.getElementById('dpControlsContainer');
+
+      if (this.activeDpAlgo === 'fibonacci') {
+        dpContainer.innerHTML = `
+          <label style="font-size:0.85rem; font-weight:600;">N:</label>
+          <input type="number" id="inputDpN" class="input-custom" value="7" min="1" max="12" style="width:60px;" />
+          <button id="btnRunDp" class="btn-primary">Calcular Fibonacci</button>
+          <button id="btnClearDp" class="btn-secondary">${t.controls.clear}</button>
+        `;
+
+        document.getElementById('btnRunDp').addEventListener('click', () => {
+          const n = document.getElementById('inputDpN').value;
+          this.animator.setTimeline(this.others.generateFibonacciFrames(n, 'tabular'));
+        });
+        document.getElementById('btnClearDp').addEventListener('click', () => {
+          this.animator.stop();
+          const scene = this.others.renderDpScene([], []);
+          this.canvas.setScene(scene.elements, scene.links, scene.decorations);
+        });
+
+      } else if (this.activeDpAlgo === 'knapsack') {
+        dpContainer.innerHTML = `
+          <label style="font-size:0.85rem; font-weight:600;">Capacidade W:</label>
+          <input type="number" id="inputKnapsackW" class="input-custom" value="5" min="2" max="10" style="width:60px;" />
+          <button id="btnRunKnapsack" class="btn-primary">Resolver Mochila 0/1</button>
+          <button id="btnClearDp" class="btn-secondary">${t.controls.clear}</button>
+        `;
+
+        document.getElementById('btnRunKnapsack').addEventListener('click', () => {
+          const cap = document.getElementById('inputKnapsackW').value;
+          this.animator.setTimeline(this.others.generateKnapsackFrames(null, cap));
+        });
+        document.getElementById('btnClearDp').addEventListener('click', () => {
+          this.animator.stop();
+          const scene = this.others.renderKnapsackScene([], [], 5, null, [], 'Tabela de Mochila 0/1 limpa. Escolha a capacidade e clique em "Resolver".');
+          this.canvas.setScene(scene.elements, scene.links, scene.decorations);
+        });
+
+      } else if (this.activeDpAlgo === 'coinChange') {
+        dpContainer.innerHTML = `
+          <label style="font-size:0.85rem; font-weight:600;">Quantia R$:</label>
+          <input type="number" id="inputCoinAmount" class="input-custom" value="7" min="1" max="15" style="width:60px;" />
+          <button id="btnRunCoin" class="btn-primary">Resolver Troco Mínimo</button>
+          <button id="btnClearDp" class="btn-secondary">${t.controls.clear}</button>
+        `;
+
+        document.getElementById('btnRunCoin').addEventListener('click', () => {
+          const amt = document.getElementById('inputCoinAmount').value;
+          this.animator.setTimeline(this.others.generateCoinChangeFrames([1, 2, 5], amt));
+        });
+        document.getElementById('btnClearDp').addEventListener('click', () => {
+          this.animator.stop();
+          const scene = this.others.renderCoinChangeScene([], [1, 2, 5], 7, null, null, 'Problema do Troco limpo. Escolha a quantia e clique em "Resolver".');
+          this.canvas.setScene(scene.elements, scene.links, scene.decorations);
+        });
+      }
+
+      document.getElementById('selectDpAlgo').addEventListener('change', (e) => {
+        this.activeDpAlgo = e.target.value;
+        this.loadInitialScene();
+        this.renderToolbar();
+        this.renderDrawerContent();
+      });
+    }
+  }
+
+  loadInitialScene() {
+    this.animator.stop();
+    if (this.currentCategory === 'avl') {
+      const scene = this.trees.layoutTree(this.trees.avlRoot);
+      this.canvas.setScene(scene.elements, scene.links, scene.decorations);
+    } else if (this.currentCategory === 'rbtree') {
+      const scene = this.trees.layoutTree(this.trees.rbRoot, true);
+      this.canvas.setScene(scene.elements, scene.links, scene.decorations);
+    } else if (this.currentCategory === 'arrays') {
+      const scene = this.arrays.buildScene(this.arrays.array);
+      this.canvas.setScene(scene.elements, scene.links, scene.decorations);
+    } else if (this.currentCategory === 'sorting') {
+      const scene = this.sorting.buildScene(this.sorting.array);
+      this.canvas.setScene(scene.elements, scene.links, scene.decorations);
+    } else if (this.currentCategory === 'graphs') {
+      const scene = this.graphs.buildScene();
+      this.canvas.setScene(scene.elements, scene.links, scene.decorations);
+    } else if (this.currentCategory === 'linear') {
+      if (this.activeLinearType === 'queue') {
+        this.canvas.setScene(this.others.renderQueue(this.others.queue, null), []);
+      } else if (this.activeLinearType === 'linkedList') {
+        const scene = this.others.renderLinkedList(this.others.linkedList, null);
+        this.canvas.setScene(scene.elements, scene.links, scene.decorations);
+      } else {
+        this.canvas.setScene(this.others.renderStack(this.others.stack, null), []);
+      }
+    } else if (this.currentCategory === 'heaps') {
+      const scene = this.others.renderHeapScene(this.others.heap, null);
+      this.canvas.setScene(scene.elements, scene.links, scene.decorations);
+    } else if (this.currentCategory === 'hashing') {
+      const scene = this.others.renderHashScene(this.others.hashTable, null);
+      this.canvas.setScene(scene.elements, scene.links, scene.decorations);
+    } else if (this.currentCategory === 'dp') {
+      if (this.activeDpAlgo === 'knapsack') {
+        const scene = this.others.renderKnapsackScene([], [], 5, null, [], 'Tabela de Mochila 0/1. Escolha a capacidade e clique em "Resolver".');
+        this.canvas.setScene(scene.elements, scene.links, scene.decorations);
+      } else if (this.activeDpAlgo === 'coinChange') {
+        const scene = this.others.renderCoinChangeScene([], [1, 2, 5], 7, null, null, 'Problema do Troco. Escolha a quantia e clique em "Resolver".');
+        this.canvas.setScene(scene.elements, scene.links, scene.decorations);
+      } else {
+        const scene = this.others.renderDpScene([], []);
+        this.canvas.setScene(scene.elements, scene.links, scene.decorations);
+      }
+    }
+    this.canvas.resetZoom();
+  }
+
+  renderDrawerContent() {
+    const t = I18N[this.currentLang] || I18N['pt-BR'];
+    let infoKey = 'avl';
+
+    if (this.currentCategory === 'rbtree') infoKey = 'rbtree';
+    else if (this.currentCategory === 'avl') infoKey = 'avl';
+    else if (this.currentCategory === 'arrays') infoKey = 'arrays';
+    else if (this.currentCategory === 'sorting') {
+      infoKey = `sorting_${this.activeSortingAlgo || 'bubble'}`;
+      if (!t.explanations[infoKey]) infoKey = 'sorting';
+    } else if (this.currentCategory === 'graphs') infoKey = 'graphs';
+    else if (this.currentCategory === 'linear') {
+      infoKey = `linear_${this.activeLinearType || 'stack'}`;
+      if (!t.explanations[infoKey]) infoKey = 'linear';
+    } else if (this.currentCategory === 'heaps') infoKey = 'heaps';
+    else if (this.currentCategory === 'hashing') infoKey = 'hashing';
+    else if (this.currentCategory === 'dp') {
+      infoKey = `dp_${this.activeDpAlgo || 'fibonacci'}`;
+      if (!t.explanations[infoKey]) infoKey = 'dp';
+    }
+
+    const info = t.explanations[infoKey] || t.explanations[this.currentCategory] || t.explanations['avl'];
+    const container = document.getElementById('drawerBody');
+    if (!info) return;
+
+    if (this.activeDrawerTab === 'explanation') {
+      container.innerHTML = `
+        <h4>${info.title}</h4>
+        <p>${info.description}</p>
+        ${info.bfExplanation ? `<p style="margin-top:0.8rem; padding:0.6rem; background:var(--accent-light); border-radius:6px; color:var(--accent-primary); font-size:0.82rem;"><strong>Fator de Balanço:</strong> ${info.bfExplanation}</p>` : ''}
+        ${info.properties ? `<p style="margin-top:0.8rem; white-space:pre-line; font-size:0.82rem; background:var(--bg-tertiary); padding:0.6rem; border-radius:6px;"><strong>Regras Invariantes:</strong>\n${info.properties}</p>` : ''}
+      `;
+    } else if (this.activeDrawerTab === 'complexity') {
+      container.innerHTML = `
+        <h4>${info.title} - Complexidades</h4>
+        <table class="complexity-table">
+          <thead>
+            <tr>
+              <th>Cenário</th>
+              <th>Tempo (Big-O)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Melhor Caso</td><td>${info.bestTime}</td></tr>
+            <tr><td>Caso Médio</td><td>${info.avgTime}</td></tr>
+            <tr><td>Pior Caso</td><td>${info.worstTime}</td></tr>
+            <tr><td>Espaço Auxiliar</td><td>${info.space}</td></tr>
+          </tbody>
+        </table>
+      `;
+    } else if (this.activeDrawerTab === 'pseudocode') {
+      container.innerHTML = `
+        <h4>${info.title} - Pseudocódigo</h4>
+        <div class="code-block">${info.pseudocode}</div>
+      `;
+    }
+  }
+}
+
+// Robust initialization whether DOMContentLoaded has already fired or not
+function initApp() {
+  if (!window.app) {
+    window.app = new App();
+  }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initApp);
+} else {
+  initApp();
+}
