@@ -1,0 +1,61 @@
+{
+  "name": "visualizador-estruturas-de-dados",
+  "version": "2.1.0",
+  "description": "Visualizador Interativo de Estruturas de Dados e Algoritmos",
+  "author": "Ed1rac",
+  "license": "MIT",
+  "main": "electron-main.js",
+  "homepage": "https://ed1rac.github.io/Visualizador-de-Estruturas-de-Dados/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Ed1rac/Visualizador-de-Estruturas-de-Dados.git"
+  },
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
+    "dist:portable": "electron-builder --win portable",
+    "dist:setup": "electron-builder --win nsis",
+    "dist:all": "electron-builder -w"
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "br.edu.unipe.visualizador",
+    "productName": "Visualizador de Estruturas de Dados",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "index.html",
+      "bundle.js",
+      "css/**/*",
+      "electron-main.js"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        },
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "artifactName": "${productName}-${version}-${target}.${ext}"
+    },
+    "portable": {
+      "artifactName": "${productName}-Portable-v${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "artifactName": "${productName}-Instalador-v${version}.${ext}"
+    }
+  }
+}
