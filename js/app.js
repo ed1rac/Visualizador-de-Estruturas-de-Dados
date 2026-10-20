@@ -11,6 +11,7 @@ import { ArrayAlgorithms } from './algorithms/arrays.js';
 import { SortingAlgorithms } from './algorithms/sorting.js';
 import { GraphAlgorithms } from './algorithms/graphs.js';
 import { OtherAlgorithms } from './algorithms/others.js';
+import { TreeAuditor } from './algorithms/treeAuditor.js';
 
 class App {
   constructor() {
@@ -31,6 +32,7 @@ class App {
 
     // Instantiate algorithm engines
     this.trees = new TreeAlgorithms();
+    this.treeAuditor = new TreeAuditor();
     this.arrays = new ArrayAlgorithms();
     this.sorting = new SortingAlgorithms();
     this.graphs = new GraphAlgorithms();
@@ -62,6 +64,11 @@ class App {
     // Format balance notices [BALANCEAMENTO...]
     formatted = formatted.replace(/\[BALANCEAMENTO[^\]]*\]/gi, (match) => {
       return `<span class="badge-tag-balance">${match}</span>`;
+    });
+
+    // Format violation badges [VIOLAÇÃO...] or [ERRO...]
+    formatted = formatted.replace(/\[(VIOLAÇÃO|ERRO|PEGADINHA)[^\]]*\]/gi, (match) => {
+      return `<span class="badge-tag-violation">${match}</span>`;
     });
 
     el.innerHTML = formatted;
@@ -178,6 +185,8 @@ class App {
     document.querySelector('.drawer-tab[data-tab="explanation"]').textContent = t.tabs.explanation;
     document.querySelector('.drawer-tab[data-tab="complexity"]').textContent = t.tabs.complexity;
     document.querySelector('.drawer-tab[data-tab="pseudocode"]').textContent = t.tabs.pseudocode;
+    const auditorTab = document.querySelector('.drawer-tab[data-tab="auditor"]');
+    if (auditorTab && t.tabs.auditor) auditorTab.textContent = t.tabs.auditor;
 
     // Refresh dynamic toolbar & drawer text
     this.renderToolbar();
@@ -191,6 +200,13 @@ class App {
     document.querySelectorAll('.nav-item').forEach(el => {
       el.classList.toggle('active', el.dataset.category === category);
     });
+
+    if (category === 'exercises') {
+      this.activeDrawerTab = 'auditor';
+      document.querySelectorAll('.drawer-tab').forEach(t => {
+        t.classList.toggle('active', t.dataset.tab === 'auditor');
+      });
+    }
 
     this.renderToolbar();
     this.renderDrawerContent();
@@ -855,6 +871,164 @@ class App {
         this.renderToolbar();
         this.renderDrawerContent();
       });
+    } else if (this.currentCategory === 'exercises') {
+      const allNodes = this.treeAuditor.getAllNodes();
+      const parentOptions = allNodes.map(n => `<option value="${n.id}">Nó #${n.id} (valor: ${n.key})</option>`).join('');
+      const removeOptions = allNodes.map(n => `<option value="${n.id}">Nó #${n.id} (valor: ${n.key})</option>`).join('');
+
+      toolbar.innerHTML = `
+        <div class="input-group">
+          <label style="font-size:0.8rem; font-weight:600;">Tipo de Invariante:</label>
+          <select id="selectAuditorType" class="select-custom">
+            <option value="bst" ${this.treeAuditor.targetType === 'bst' ? 'selected' : ''}>🌲 ABB (Busca Binária)</option>
+            <option value="avl" ${this.treeAuditor.targetType === 'avl' ? 'selected' : ''}>⚖️ Árvore AVL</option>
+            <option value="rbtree" ${this.treeAuditor.targetType === 'rbtree' ? 'selected' : ''}>🔴⚫ Árvore Rubro-Negra</option>
+            <option value="minheap" ${this.treeAuditor.targetType === 'minheap' ? 'selected' : ''}>⛰️ Min-Heap</option>
+            <option value="maxheap" ${this.treeAuditor.targetType === 'maxheap' ? 'selected' : ''}>🏔️ Max-Heap</option>
+          </select>
+        </div>
+
+        <div class="input-group">
+          <label style="font-size:0.8rem; font-weight:600;">Exercícios / Pegadinhas:</label>
+          <select id="selectPreset" class="select-custom" style="max-width:240px;">
+            <optgroup label="Árvore Binária de Busca (ABB)">
+              <option value="bst_ancestor_trap">Pegadinha: Violação de Ancestral Global</option>
+              <option value="bst_local_err">Erro Local: Filho Esquerdo &ge; Pai</option>
+              <option value="bst_valid">ABB Válida (Sem Erro)</option>
+            </optgroup>
+            <optgroup label="Árvore AVL">
+              <option value="avl_unbalanced_ll">Desbalanceamento AVL: Caso LL (Rotação Dir)</option>
+              <option value="avl_unbalanced_lr">Desbalanceamento AVL: Caso LR (Rotação Dupla)</option>
+              <option value="avl_valid">AVL Válida Equilibrada</option>
+            </optgroup>
+            <optgroup label="Árvore Rubro-Negra">
+              <option value="rb_red_root">Regra 2: Raiz Vermelha</option>
+              <option value="rb_red_red">Regra 4: Vermelho-Vermelho Consecutivo</option>
+              <option value="rb_black_height">Regra 5: Altura-Preta Desigual (bh)</option>
+              <option value="rb_valid">Rubro-Negra 100% Válida</option>
+            </optgroup>
+            <optgroup label="Heaps Binários">
+              <option value="heap_min_err">Min-Heap: Inversão Filho &lt; Pai</option>
+              <option value="heap_shape_err">Violação de Árvore Quase-Completa</option>
+            </optgroup>
+          </select>
+          <button id="btnLoadPreset" class="btn-secondary">Carregar</button>
+        </div>
+
+        <div class="input-group">
+          <input type="number" id="inputNodeVal" class="input-custom" placeholder="Valor" style="width:75px;" />
+          <select id="selectParentNode" class="select-custom" style="max-width:140px;">
+            <option value="root_new">Definir como Raiz</option>
+            ${parentOptions}
+          </select>
+          <select id="selectPosition" class="select-custom">
+            <option value="left">Filho Esq</option>
+            <option value="right">Filho Dir</option>
+          </select>
+          ${this.treeAuditor.targetType === 'rbtree' ? `
+            <select id="selectNodeColor" class="select-custom">
+              <option value="RED">🔴 Vermelho</option>
+              <option value="BLACK">⚫ Preto</option>
+            </select>
+          ` : ''}
+          <button id="btnInsertFree" class="btn-primary">➕ Inserir</button>
+        </div>
+
+        <div class="input-group">
+          ${allNodes.length > 0 ? `
+            <select id="selectDeleteNode" class="select-custom" style="max-width:140px;">
+              ${removeOptions}
+            </select>
+            <button id="btnDeleteFree" class="btn-secondary" style="border-color:#ef4444; color:#ef4444;">🗑️ Remover</button>
+            ${this.treeAuditor.targetType === 'rbtree' ? `
+              <button id="btnToggleColorFree" class="btn-secondary">🎨 Inverter Cor</button>
+            ` : ''}
+          ` : ''}
+          <button id="btnClearFree" class="btn-secondary">🧹 Limpar</button>
+        </div>
+
+        <div class="input-group">
+          <button id="btnToggleReveal" class="btn-secondary" style="font-weight:600; border-color:${this.treeAuditor.revealMode ? '#0284c7' : '#d97706'}; color:${this.treeAuditor.revealMode ? '#0284c7' : '#d97706'};">
+            ${this.treeAuditor.revealMode ? '👁️ Gabarito: Revelado' : '🙈 Gabarito: Oculto (Modo Aluno)'}
+          </button>
+          <button id="btnAuditNow" class="btn-primary" style="background:#059669; border-color:#059669;">🔍 Auditar</button>
+        </div>
+      `;
+
+      // Helper to refresh everything
+      const refreshAll = () => {
+        this.treeAuditor.audit();
+        const scene = this.treeAuditor.buildScene();
+        this.canvas.setScene(scene.elements, scene.links, scene.decorations);
+        this.updateStatusDisplay(this.treeAuditor.cachedAuditResult.summary);
+        this.renderToolbar();
+        this.renderDrawerContent();
+      };
+
+      document.getElementById('selectAuditorType').addEventListener('change', (e) => {
+        this.treeAuditor.targetType = e.target.value;
+        refreshAll();
+      });
+
+      document.getElementById('btnLoadPreset').addEventListener('click', () => {
+        const val = document.getElementById('selectPreset').value;
+        this.treeAuditor.loadPreset(val);
+        refreshAll();
+      });
+
+      document.getElementById('btnInsertFree').addEventListener('click', () => {
+        const key = document.getElementById('inputNodeVal').value;
+        if (key === '') return;
+        const parentId = document.getElementById('selectParentNode').value;
+        const position = document.getElementById('selectPosition').value;
+        const colorEl = document.getElementById('selectNodeColor');
+        const color = colorEl ? colorEl.value : 'BLACK';
+
+        this.treeAuditor.insertFreeNode(key, parentId === 'root_new' ? null : parentId, position, color);
+        refreshAll();
+      });
+
+      const btnDelete = document.getElementById('btnDeleteFree');
+      if (btnDelete) {
+        btnDelete.addEventListener('click', () => {
+          const id = document.getElementById('selectDeleteNode').value;
+          this.treeAuditor.removeNode(id);
+          refreshAll();
+        });
+      }
+
+      const btnToggleColor = document.getElementById('btnToggleColorFree');
+      if (btnToggleColor) {
+        btnToggleColor.addEventListener('click', () => {
+          const id = document.getElementById('selectDeleteNode').value;
+          this.treeAuditor.toggleNodeColor(id);
+          refreshAll();
+        });
+      }
+
+      document.getElementById('btnClearFree').addEventListener('click', () => {
+        this.treeAuditor.clear();
+        refreshAll();
+      });
+
+      document.getElementById('btnToggleReveal').addEventListener('click', () => {
+        this.treeAuditor.revealMode = !this.treeAuditor.revealMode;
+        refreshAll();
+      });
+
+      document.getElementById('btnAuditNow').addEventListener('click', () => {
+        this.activeDrawerTab = 'auditor';
+        document.querySelectorAll('.drawer-tab').forEach(t => {
+          t.classList.toggle('active', t.dataset.tab === 'auditor');
+        });
+        const drawer = document.getElementById('explanationDrawer');
+        if (drawer.classList.contains('collapsed')) {
+          drawer.classList.remove('collapsed');
+          this.drawerOpen = true;
+          setTimeout(() => this.canvas.initCanvasSize(), 260);
+        }
+        refreshAll();
+      });
     }
   }
 
@@ -901,6 +1075,10 @@ class App {
         const scene = this.others.renderDpScene([], []);
         this.canvas.setScene(scene.elements, scene.links, scene.decorations);
       }
+    } else if (this.currentCategory === 'exercises') {
+      const scene = this.treeAuditor.buildScene();
+      this.canvas.setScene(scene.elements, scene.links, scene.decorations);
+      this.updateStatusDisplay(this.treeAuditor.cachedAuditResult.summary);
     }
     this.canvas.resetZoom();
   }
@@ -911,6 +1089,7 @@ class App {
 
     if (this.currentCategory === 'rbtree') infoKey = 'rbtree';
     else if (this.currentCategory === 'avl') infoKey = 'avl';
+    else if (this.currentCategory === 'exercises') infoKey = 'exercises';
     else if (this.currentCategory === 'arrays') infoKey = 'arrays';
     else if (this.currentCategory === 'sorting') {
       infoKey = `sorting_${this.activeSortingAlgo || 'bubble'}`;
@@ -929,6 +1108,77 @@ class App {
     const info = t.explanations[infoKey] || t.explanations[this.currentCategory] || t.explanations['avl'];
     const container = document.getElementById('drawerBody');
     if (!info) return;
+
+    if (this.activeDrawerTab === 'auditor') {
+      const res = this.treeAuditor.cachedAuditResult;
+      if (!this.treeAuditor.revealMode) {
+        container.innerHTML = `
+          <div class="audit-status-banner hidden">
+            <span>🙈 Modo Aluno Ativado (Gabarito Oculto)</span>
+          </div>
+          <div class="audit-classroom-box">
+            <h4 style="margin-bottom:0.8rem;">🎓 Desafio para a Turma</h4>
+            <p style="margin-bottom:1.2rem; color:var(--text-secondary); line-height:1.5;">
+              A árvore desenhada na tela contém propriedades e invariantes a serem inspecionadas pelos alunos.
+              <br><br>
+              Peça para a turma analisar a árvore, verificar as relações pai-filho e caminhos para folhas, e responder: 
+              <strong>Qual é o erro presente nesta estrutura?</strong>
+            </p>
+            <button id="btnRevealInDrawer" class="btn-primary" style="padding:0.6rem 1.25rem; font-size:0.9rem;">
+              👁️ Revelar Diagnóstico Oficial
+            </button>
+          </div>
+        `;
+        const btnReveal = document.getElementById('btnRevealInDrawer');
+        if (btnReveal) {
+          btnReveal.addEventListener('click', () => {
+            this.treeAuditor.revealMode = true;
+            this.loadInitialScene();
+            this.renderToolbar();
+            this.renderDrawerContent();
+          });
+        }
+        return;
+      }
+
+      let errorsHtml = '';
+      if (res.errors.length === 0) {
+        errorsHtml = `
+          <div class="audit-card success">
+            <div class="audit-card-header">
+              <span class="audit-rule-tag tag-success">100% VÁLIDO</span>
+            </div>
+            <div class="audit-card-title">✅ Nenhuma Violação Detectada</div>
+            <div class="audit-card-msg">A estrutura atual satisfaz com perfeição todas as propriedades e invariantes da <strong>${this.treeAuditor.getTargetName(this.treeAuditor.targetType)}</strong>.</div>
+          </div>
+        `;
+      } else {
+        errorsHtml = res.errors.map((err, idx) => `
+          <div class="audit-card">
+            <div class="audit-card-header">
+              <span class="audit-rule-tag">VIOLAÇÃO #${idx + 1}: ${err.rule}</span>
+              <span style="font-size:0.75rem; color:#ef4444; font-weight:600;">Nós: ${err.nodeIds.map(id => '#' + id).join(', ')}</span>
+            </div>
+            <div class="audit-card-title">${err.title}</div>
+            <div class="audit-card-msg">${err.message}</div>
+            <div class="audit-card-explanation">${err.explanation}</div>
+            <div class="audit-fix-box">💡 ${err.fixHint}</div>
+          </div>
+        `).join('');
+      }
+
+      container.innerHTML = `
+        <div class="audit-status-banner ${res.isValid ? 'valid' : 'error'}">
+          <span>${res.summary}</span>
+        </div>
+        <div style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:0.85rem; display:flex; justify-content:space-between;">
+          <span>Alvo: <strong>${this.treeAuditor.getTargetName(this.treeAuditor.targetType)}</strong></span>
+          <span>Nós: <strong>${res.stats.nodeCount}</strong> | Altura: <strong>${res.stats.height}</strong></span>
+        </div>
+        ${errorsHtml}
+      `;
+      return;
+    }
 
     if (this.activeDrawerTab === 'explanation') {
       container.innerHTML = `

@@ -13,6 +13,7 @@ files_order = [
     ('canvas.js', os.path.join(js_dir, 'core', 'canvas.js')),
     ('animator.js', os.path.join(js_dir, 'core', 'animator.js')),
     ('trees.js', os.path.join(js_dir, 'algorithms', 'trees.js')),
+    ('treeAuditor.js', os.path.join(js_dir, 'algorithms', 'treeAuditor.js')),
     ('arrays.js', os.path.join(js_dir, 'algorithms', 'arrays.js')),
     ('sorting.js', os.path.join(js_dir, 'algorithms', 'sorting.js')),
     ('graphs.js', os.path.join(js_dir, 'algorithms', 'graphs.js')),
