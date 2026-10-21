@@ -1,0 +1,13 @@
+dist/
+node_modules/
+.git/
+__pycache__/
+*.exe
+*.zip
+*.ps1
+*.bat
+open_app.ps1
+build_standalone.py
+electron-main.js
+run.py
+package-lock.json
