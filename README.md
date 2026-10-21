@@ -2,7 +2,7 @@
 
 > **Reconstrução, Modernização e Extensão** do aplicativo educacional clássico `visualization.jar` (originalmente desenvolvido pelo Prof. David Galles na University of San Francisco - USFCA).
 > 
-> 🌐 **Multiplataforma:** Versão Web Online (GitHub Pages) + Aplicativo Desktop nativo para Windows (`.exe`) + Arquivo único Standalone (`.html`) para uso offline em qualquer sistema!
+> 🌐 **Multiplataforma:** Versão Web Online (Vercel & GitHub Pages) + Aplicativo Desktop nativo para Windows (`.exe`) + Arquivo único Standalone (`.html`) para uso offline em qualquer sistema!
 
 ---
 
@@ -12,7 +12,8 @@ O projeto foi projetado para oferecer máxima acessibilidade e simplicidade tant
 
 | Modo | Formato | Como Acessar / Usar | Plataformas |
 | :--- | :--- | :--- | :--- |
-| **🌐 Web Online** | GitHub Pages | [Acessar Online](https://ed1rac.github.io/Visualizador-de-Estruturas-de-Dados/) diretamente no navegador | Qualquer navegador moderno (Windows, Mac, Linux, Celular/Tablet) |
+| **🌐 Web Online (Vercel)** | Nuvem / Edge | [visualizador-estruturas.vercel.app](https://visualizador-estruturas.vercel.app) *(versão completa com Modo Exercícios & Auditoria)* | Qualquer navegador moderno (Computador, Celular, Tablet) |
+| **🌐 Web Online (GitHub Pages)** | GitHub Pages | [Acessar no GitHub Pages](https://ed1rac.github.io/Visualizador-de-Estruturas-de-Dados/) diretamente no navegador | Qualquer navegador moderno (Windows, Mac, Linux, Celular/Tablet) |
 | **📦 Desktop Portátil** | `.exe` (~74 MB) | Baixar na [Aba Releases](https://github.com/Ed1rac/Visualizador-de-Estruturas-de-Dados/releases) e dar duplo clique (não requer instalação nem privilégios de administrador) | Windows 10 / 11 (64-bit) |
 | **💿 Desktop Instalador** | `.exe` (~81 MB) | Baixar na [Aba Releases](https://github.com/Ed1rac/Visualizador-de-Estruturas-de-Dados/releases) e instalar com atalhos no Menu Iniciar e Área de Trabalho | Windows 10 / 11 (64-bit) |
 | **📄 Arquivo Único Standalone** | `.html` (~225 KB) | Baixar o arquivo `visualizador-standalone.html` e abrir com duplo clique no navegador, 100% offline | Qualquer sistema (Windows, macOS, Linux) |
@@ -70,13 +71,19 @@ Este software foi recriado a partir da análise detalhada por **Engenharia Rever
 10. **Linha do Tempo Bidirecional:**
     - Reproduzir / Pausar / **Voltar Passo (Step Backward - ⏮)** / Avançar Passo / Controle de velocidade / Estruturas iniciam zeradas.
 
+11. **🎓 Modo Exercícios & Auditoria de Árvores:**
+    - Construção livre de árvores para criar intencionalmente estruturas com erros para desafios e aulas.
+    - Diagnóstico automático e em tempo real de violações de invariantes em Árvores Binárias de Busca (ABB), AVL, Rubro-Negras e Heaps.
+    - Modo Gabarito Oculto (Modo Aluno) para projeção em sala de aula e Modo Gabarito Revelado com as correções e rotações necessárias.
+    - Biblioteca de 12 pegadinhas de prova e exercícios pré-configurados com 1 clique.
+
 ---
 
 ## 📂 Estrutura do Repositório
 
 ```
 visualizador-v2/
-├── index.html                     # Ponto de entrada Web (GitHub Pages) e Desktop
+├── index.html                     # Ponto de entrada Web (GitHub Pages & Vercel) e Desktop
 ├── bundle.js                      # Código JavaScript unificado e otimizado
 ├── visualizador-standalone.html   # Versão completa e autossuficiente em arquivo único (HTML+CSS+JS)
 ├── electron-main.js               # Processo principal da aplicação Desktop Electron
@@ -95,6 +102,7 @@ visualizador-v2/
     │   └── animator.js            # Motor da linha do tempo com reversibilidade
     └── algorithms/
         ├── trees.js               # BST, AVL e Rubro-Negra
+        ├── treeAuditor.js         # Auditoria de invariantes e exercícios de sala de aula
         ├── arrays.js              # Buscas, Dois Ponteiros, Janela, Kadane, Bandeira Holandesa
         ├── sorting.js             # Bubble, Selection, Insertion e Quick Sort
         ├── graphs.js              # BFS, Dijkstra e manipulação de vértices/arestas
