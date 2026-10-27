@@ -12,6 +12,7 @@ import { SortingAlgorithms } from './algorithms/sorting.js';
 import { GraphAlgorithms } from './algorithms/graphs.js';
 import { OtherAlgorithms } from './algorithms/others.js';
 import { TreeAuditor } from './algorithms/treeAuditor.js';
+import { BTreeAlgorithms } from './algorithms/btree.js';
 
 class App {
   constructor() {
@@ -33,6 +34,7 @@ class App {
     // Instantiate algorithm engines
     this.trees = new TreeAlgorithms();
     this.treeAuditor = new TreeAuditor();
+    this.btree = new BTreeAlgorithms(3);
     this.arrays = new ArrayAlgorithms();
     this.sorting = new SortingAlgorithms();
     this.graphs = new GraphAlgorithms();
@@ -371,6 +373,81 @@ class App {
         this.trees.clearRb();
         const scene = this.trees.layoutTree(this.trees.rbRoot, true);
         this.canvas.setScene(scene.elements, scene.links, scene.decorations);
+      });
+
+    } else if (this.currentCategory === 'btree') {
+      toolbar.innerHTML = `
+        <div class="input-group">
+          <input type="number" id="inputBtreeVal" class="input-custom" placeholder="Valor" style="width:75px;" />
+          <button id="btnBtreeInsert" class="btn-primary">${t.controls.insert}</button>
+          <button id="btnBtreeDelete" class="btn-secondary" style="border-color:#ef4444; color:#ef4444;">${t.controls.delete}</button>
+          <button id="btnBtreeSearch" class="btn-secondary">${t.controls.search}</button>
+          <button id="btnBtreeRandom" class="btn-secondary">${t.controls.randomValue}</button>
+          <button id="btnBtreeBulk" class="btn-secondary">${t.controls.randomSet}</button>
+          <button id="btnClearBtree" class="btn-secondary">${t.controls.clear}</button>
+        </div>
+        <div class="input-group">
+          <label style="font-size:0.8rem; font-weight:600;">Ordem (M):</label>
+          <select id="selectBtreeOrder" class="select-custom">
+            <option value="3" ${this.btree.order === 3 ? 'selected' : ''}>M=3 (Árvore 2-3 | 1 a 2 chaves)</option>
+            <option value="4" ${this.btree.order === 4 ? 'selected' : ''}>M=4 (Árvore 2-3-4 | 1 a 3 chaves)</option>
+            <option value="5" ${this.btree.order === 5 ? 'selected' : ''}>M=5 (Ordem 5 | 2 a 4 chaves)</option>
+          </select>
+        </div>
+      `;
+
+      document.getElementById('btnBtreeInsert').addEventListener('click', () => {
+        const val = document.getElementById('inputBtreeVal').value;
+        if (val !== '') {
+          const frames = this.btree.generateBTreeInsertFrames(val);
+          this.animator.setTimeline(frames);
+          document.getElementById('inputBtreeVal').value = '';
+        }
+      });
+
+      document.getElementById('btnBtreeDelete').addEventListener('click', () => {
+        const val = document.getElementById('inputBtreeVal').value;
+        if (val !== '') {
+          const frames = this.btree.generateBTreeDeleteFrames(val);
+          this.animator.setTimeline(frames);
+          document.getElementById('inputBtreeVal').value = '';
+        }
+      });
+
+      document.getElementById('btnBtreeSearch').addEventListener('click', () => {
+        const val = document.getElementById('inputBtreeVal').value;
+        if (val !== '') {
+          const frames = this.btree.generateBTreeSearchFrames(val);
+          this.animator.setTimeline(frames);
+        }
+      });
+
+      document.getElementById('btnBtreeRandom').addEventListener('click', () => {
+        document.getElementById('inputBtreeVal').value = Math.floor(Math.random() * 90) + 10;
+      });
+
+      document.getElementById('btnBtreeBulk').addEventListener('click', () => {
+        this.btree.clear();
+        const values = [20, 40, 10, 30, 50, 60, 25, 35, 70, 80];
+        let allFrames = [];
+        for (const v of values) {
+          allFrames = allFrames.concat(this.btree.generateBTreeInsertFrames(v));
+        }
+        this.animator.setTimeline(allFrames);
+      });
+
+      document.getElementById('btnClearBtree').addEventListener('click', () => {
+        this.animator.stop();
+        this.btree.clear();
+        const scene = this.btree.layoutTree(this.btree.root);
+        this.canvas.setScene(scene.elements, scene.links, scene.decorations);
+      });
+
+      document.getElementById('selectBtreeOrder').addEventListener('change', (e) => {
+        this.btree.setOrder(e.target.value);
+        const scene = this.btree.layoutTree(this.btree.root);
+        this.canvas.setScene(scene.elements, scene.links, scene.decorations);
+        this.renderToolbar();
       });
 
     } else if (this.currentCategory === 'arrays') {
@@ -1040,6 +1117,9 @@ class App {
     } else if (this.currentCategory === 'rbtree') {
       const scene = this.trees.layoutTree(this.trees.rbRoot, true);
       this.canvas.setScene(scene.elements, scene.links, scene.decorations);
+    } else if (this.currentCategory === 'btree') {
+      const scene = this.btree.layoutTree(this.btree.root);
+      this.canvas.setScene(scene.elements, scene.links, scene.decorations);
     } else if (this.currentCategory === 'arrays') {
       const scene = this.arrays.buildScene(this.arrays.array);
       this.canvas.setScene(scene.elements, scene.links, scene.decorations);
@@ -1089,6 +1169,7 @@ class App {
 
     if (this.currentCategory === 'rbtree') infoKey = 'rbtree';
     else if (this.currentCategory === 'avl') infoKey = 'avl';
+    else if (this.currentCategory === 'btree') infoKey = 'btree';
     else if (this.currentCategory === 'exercises') infoKey = 'exercises';
     else if (this.currentCategory === 'arrays') infoKey = 'arrays';
     else if (this.currentCategory === 'sorting') {
