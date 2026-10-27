@@ -511,3 +511,142 @@ body {
   color: var(--text-primary);
   line-height: 1.45;
 }
+
+/* -------------------------------------------------------------
+ * Tree Auditor & Student Exercises Styles
+ * ------------------------------------------------------------- */
+.audit-status-banner {
+  padding: 0.85rem 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.88rem;
+}
+
+.audit-status-banner.error {
+  background: rgba(239, 68, 68, 0.12);
+  color: #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.audit-status-banner.valid {
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.audit-status-banner.hidden {
+  background: rgba(245, 158, 11, 0.12);
+  color: #d97706;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.audit-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-left: 4px solid #ef4444;
+  border-radius: 8px;
+  padding: 0.9rem 1rem;
+  margin-bottom: 0.9rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  transition: all 0.2s ease;
+}
+
+.audit-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+}
+
+.audit-card.success {
+  border-left-color: #10b981;
+}
+
+.audit-card.warning {
+  border-left-color: #f59e0b;
+}
+
+.audit-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.audit-rule-tag {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  background: rgba(239, 68, 68, 0.15);
+  color: #dc2626;
+}
+
+.audit-rule-tag.tag-success {
+  background: rgba(16, 185, 129, 0.15);
+  color: #059669;
+}
+
+.audit-card-title {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.35rem;
+}
+
+.audit-card-msg {
+  font-size: 0.84rem;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+  line-height: 1.45;
+}
+
+.audit-card-explanation {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  background: var(--bg-tertiary);
+  padding: 0.6rem 0.75rem;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  line-height: 1.45;
+}
+
+.audit-fix-box {
+  font-size: 0.8rem;
+  color: #0369a1;
+  background: var(--accent-light);
+  padding: 0.55rem 0.75rem;
+  border-radius: 6px;
+  border-left: 3px solid var(--accent-primary);
+  line-height: 1.4;
+}
+
+body.dark-theme .audit-fix-box {
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.1);
+}
+
+.audit-classroom-box {
+  text-align: center;
+  padding: 2rem 1rem;
+  background: var(--bg-tertiary);
+  border: 1px dashed var(--border-color);
+  border-radius: 8px;
+}
+
+.badge-tag-violation {
+  display: inline-block;
+  background: rgba(239, 68, 68, 0.2);
+  color: #dc2626;
+  font-weight: 700;
+  font-size: 0.74rem;
+  padding: 0.12rem 0.45rem;
+  border-radius: 4px;
+  border: 1px solid #ef4444;
+  margin-right: 0.3rem;
+}
+

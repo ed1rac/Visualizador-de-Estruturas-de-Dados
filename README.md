@@ -12,7 +12,7 @@ O projeto foi projetado para oferecer máxima acessibilidade e simplicidade tant
 
 | Modo | Formato | Como Acessar / Usar | Plataformas |
 | :--- | :--- | :--- | :--- |
-| **🌐 Web Online (Vercel)** | Nuvem / Edge | [visualizador-estruturas.vercel.app](https://visualizador-estruturas.vercel.app) *(com Modo Exercícios & Auditoria)* | Qualquer navegador moderno (Computador, Celular, Tablet) |
+| **🌐 Web Online (Vercel)** | Nuvem / Edge | [visualizador-estruturas.vercel.app](https://visualizador-estruturas.vercel.app) *(versão completa com Modo Exercícios & Auditoria)* | Qualquer navegador moderno (Computador, Celular, Tablet) |
 | **🌐 Web Online (GitHub Pages)** | GitHub Pages | [Acessar no GitHub Pages](https://ed1rac.github.io/Visualizador-de-Estruturas-de-Dados/) diretamente no navegador | Qualquer navegador moderno (Windows, Mac, Linux, Celular/Tablet) |
 | **📦 Desktop Portátil** | `.exe` (~74 MB) | Baixar na [Aba Releases](https://github.com/Ed1rac/Visualizador-de-Estruturas-de-Dados/releases) e dar duplo clique (não requer instalação nem privilégios de administrador) | Windows 10 / 11 (64-bit) |
 | **💿 Desktop Instalador** | `.exe` (~81 MB) | Baixar na [Aba Releases](https://github.com/Ed1rac/Visualizador-de-Estruturas-de-Dados/releases) e instalar com atalhos no Menu Iniciar e Área de Trabalho | Windows 10 / 11 (64-bit) |
@@ -41,35 +41,48 @@ Este software foi recriado a partir da análise detalhada por **Engenharia Rever
    - Opção para **Mostrar ou Ocultar nós NIL (folhas pretas)**.
    - Animação passo a passo de inserção, recolorações (tio vermelho) e rotações (tio preto).
 
-4. **Todas as Estruturas Lineares (LIFO, FIFO e Encadeada):**
+4. **Árvores-B (B-Trees Multiway):**
+   - Suporte completo a ordens configuráveis: **Ordem 3 (Árvore 2-3)**, **Ordem 4 (Árvore 2-3-4)** e **Ordem 5**.
+   - Visualização segmentada multi-chave com células retangulares e ponteiros direcionados aos nós filhos.
+   - Animação passo a passo de inserção com **Cisão de Nó (Split)** e **Promoção da Chave Mediana** até a raiz.
+   - Animação de remoção com substituição por predecessor em-ordem, **Empréstimo/Rotação entre irmãos** e **Fusão de Nós (Merge)**.
+   - Busca comparativa navegando pelas chaves e descendo pelos ramos específicos.
+
+12. **Todas as Estruturas Lineares (LIFO, FIFO e Encadeada):**
    - **Pilha (Stack):** Operações `Push`, `Pop` e apontador de `TOPO`.
    - **Fila (Queue):** Operações `Enqueue` (Rear) e `Dequeue` (Front) com animação de fluxo e tratamento de underflow.
    - **Lista Encadeada Simples:** Inserção e remoção no Início (Head) ou Fim (Tail), busca nó a nó e ponteiros dinâmicos apontando para `NULL`.
 
-5. **Programação Dinâmica Completa:**
+12. **Programação Dinâmica Completa:**
    - **Fibonacci:** Abordagem iterativa bottom-up em $O(n)$.
    - **Mochila 0/1 (0/1 Knapsack):** Matriz 2D comparando decisões de inclusão e exclusão com *backtracking* dos itens ótimos.
    - **Problema do Troco Mínimo (Coin Change):** Vetor 1D calculando a quantidade mínima de moedas.
 
-6. **Interatividade Total em Grafos:**
+12. **Interatividade Total em Grafos:**
    - Inserção manual de **Vértices** com rótulos customizados.
    - Inserção manual de **Arestas Ponderadas** selecionando origem, destino e peso.
    - Gerador de grafos aleatórios com distribuição orgânica (formatos geométricos variados a cada clique), além de **BFS** e **Dijkstra**.
 
-7. **Ordenação com Sentido Duplo e Pseudocódigos Dinâmicos:**
+12. **Ordenação com Sentido Duplo e Pseudocódigos Dinâmicos:**
    - Ordenação **Crescente (Ascendente)** e **Decrescente (Descendente)** para Bubble Sort, Selection Sort, Insertion Sort e Quick Sort.
    - O painel lateral (gaveta) atualiza dinamicamente o **pseudocódigo**, a **explicação teórica** e a **tabela Big-O** de acordo com o algoritmo selecionado.
 
-8. **Zoom & Pan Infinito em Todos os Módulos:**
+12. **Zoom & Pan Infinito em Todos os Módulos:**
    - Botões flutuantes: **Zoom In (+)**, **Zoom Out (-)** e **Reset / 100%**.
    - Suporte a scroll com a roda do mouse (*mouse wheel*) com foco no cursor.
    - Arrastar com o mouse (*drag to pan*) para navegar livremente por árvores profundas e grafos extensos.
 
-9. **Multi-idioma Nativo (i18n):**
+12. **Multi-idioma Nativo (i18n):**
    - 🇧🇷 **Português (pt-BR)** | 🇺🇸 **Inglês (en)** | 🇪🇸 **Espanhol (es)** + Alternância de Tema Claro/Escuro.
 
-10. **Linha do Tempo Bidirecional:**
+12. **Linha do Tempo Bidirecional:**
     - Reproduzir / Pausar / **Voltar Passo (Step Backward - ⏮)** / Avançar Passo / Controle de velocidade / Estruturas iniciam zeradas.
+
+12. **🎓 Modo Exercícios & Auditoria de Árvores:**
+    - Construção livre de árvores para criar intencionalmente estruturas com erros para desafios e aulas.
+    - Diagnóstico automático e em tempo real de violações de invariantes em Árvores Binárias de Busca (ABB), AVL, Rubro-Negras e Heaps.
+    - Modo Gabarito Oculto (Modo Aluno) para projeção em sala de aula e Modo Gabarito Revelado com as correções e rotações necessárias.
+    - Biblioteca de 12 pegadinhas de prova e exercícios pré-configurados com 1 clique.
 
 ---
 
@@ -77,7 +90,7 @@ Este software foi recriado a partir da análise detalhada por **Engenharia Rever
 
 ```
 visualizador-v2/
-├── index.html                     # Ponto de entrada Web (GitHub Pages) e Desktop
+├── index.html                     # Ponto de entrada Web (GitHub Pages & Vercel) e Desktop
 ├── bundle.js                      # Código JavaScript unificado e otimizado
 ├── visualizador-standalone.html   # Versão completa e autossuficiente em arquivo único (HTML+CSS+JS)
 ├── electron-main.js               # Processo principal da aplicação Desktop Electron
@@ -96,6 +109,8 @@ visualizador-v2/
     │   └── animator.js            # Motor da linha do tempo com reversibilidade
     └── algorithms/
         ├── trees.js               # BST, AVL e Rubro-Negra
+        ├── btree.js               # Árvore-B (Multiway, Cisão, Fusão, Rotação)
+        ├── treeAuditor.js         # Auditoria de invariantes e exercícios de sala de aula
         ├── arrays.js              # Buscas, Dois Ponteiros, Janela, Kadane, Bandeira Holandesa
         ├── sorting.js             # Bubble, Selection, Insertion e Quick Sort
         ├── graphs.js              # BFS, Dijkstra e manipulação de vértices/arestas

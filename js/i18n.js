@@ -12,12 +12,16 @@ export const I18N = {
       arrays: "Algoritmos em Arrays",
       linear: "Listas, Pilhas e Filas",
       sorting: "Algoritmos de Ordenação",
+      avl: "Árvore AVL (Fator de Balanço)",
+      rbtree: "Árvore Rubro-Negra (NIL Nodes)",
+      btree: "Árvore-B (Multiway)",
       trees: "Árvores (BST, AVL, Rubro-Negra, B-Tree)",
       heaps: "Heaps e Filas de Prioridade",
       graphs: "Algoritmos em Grafos",
       hashing: "Tabelas Hash",
       dp: "Programação Dinâmica",
-      compression: "Compressão (Huffman)"
+      compression: "Compressão (Huffman)",
+      exercises: "🎓 Auditoria & Construção Livre"
     },
     controls: {
       play: "Reproduzir",
@@ -91,7 +95,8 @@ export const I18N = {
     tabs: {
       explanation: "Explicação Didática",
       complexity: "Complexidades (Big-O)",
-      pseudocode: "Pseudocódigo"
+      pseudocode: "Pseudocódigo",
+      auditor: "🔍 Diagnóstico"
     },
     explanations: {
       avl: {
@@ -499,6 +504,30 @@ funcao fibonacciTabela(n):
         pai.dir = dir
         Q.inserir(pai)
     retorne Q.extrairMin()`
+      },
+      exercises: {
+        title: "Modo Exercícios & Auditoria de Árvores",
+        description: "Este ambiente permite construir árvores livremente, inserindo nós em posições arbitrárias para criar propositalmente árvores com erros ou carregar pegadinhas clássicas de provas. O motor de auditoria em tempo real inspeciona a estrutura contra as invariantes matemáticas de Árvores Binárias de Busca (ABB), Árvores AVL, Árvores Rubro-Negras e Heaps, diagnosticando a regra exata violada, os nós envolvidos e a rotação ou correção necessária.",
+        bestTime: "O(n)",
+        avgTime: "O(n)",
+        worstTime: "O(n)",
+        space: "O(h)",
+        pseudocode: `funcao auditarArvore(no, minVal, maxVal):
+    se no == NULO: retornar VÁLIDO
+    
+    // Invariante de Árvore Binária de Busca (Global e Local)
+    se no.chave <= minVal ou no.chave >= maxVal:
+        registrarErro("Violação de Invariante de ABB", no)
+        
+    // Invariante de Árvore AVL
+    se tipo == "AVL" e abs(no.alturaEsq - no.alturaDir) > 1:
+        registrarErro("Desbalanceamento AVL", calcularRotacao(no))
+        
+    // Invariantes da Árvore Rubro-Negra (Regras 1 a 5)
+    se tipo == "RUBRO_NEGRA":
+        verificarRegras1a5(no)
+        
+    retornar auditarArvore(no.esq) e auditarArvore(no.dir)`
       }
     }
   },
@@ -511,12 +540,14 @@ funcao fibonacciTabela(n):
       arrays: "Array Algorithms",
       linear: "Lists, Stacks & Queues",
       sorting: "Sorting Algorithms",
+      btree: "B-Tree (Multiway)",
       trees: "Trees (BST, AVL, Red-Black, B-Tree)",
       heaps: "Heaps & Priority Queues",
       graphs: "Graph Algorithms",
       hashing: "Hash Tables",
       dp: "Dynamic Programming",
-      compression: "Compression (Huffman)"
+      compression: "Compression (Huffman)",
+      exercises: "🎓 Tree Auditor & Free Build"
     },
     controls: {
       play: "Play",
@@ -590,7 +621,8 @@ funcao fibonacciTabela(n):
     tabs: {
       explanation: "Educational Explanation",
       complexity: "Complexities (Big-O)",
-      pseudocode: "Pseudocode"
+      pseudocode: "Pseudocode",
+      auditor: "🔍 Error Diagnosis"
     },
     explanations: {
       avl: {
@@ -955,6 +987,23 @@ function search(list, key):
         parent.left = left; parent.right = right
         Q.insert(parent)
     return Q.extractMin()`
+      },
+      exercises: {
+        title: "Tree Auditor & Exercise Mode",
+        description: "Construct arbitrary binary trees freely or test classic student exam traps. Real-time auditing checks BST ordering (local and global ancestors), AVL balance factors, Red-Black properties (rules 1-5), and Heap priority invariants.",
+        bestTime: "O(n)",
+        avgTime: "O(n)",
+        worstTime: "O(n)",
+        space: "O(h)",
+        pseudocode: `function auditTree(node, minVal, maxVal):
+    if node == null: return VALID
+    if node.key <= minVal or node.key >= maxVal:
+        recordError("BST Invariant Violation", node)
+    if type == "AVL" and abs(node.hL - node.hR) > 1:
+        recordError("AVL Unbalance", computeRotation(node))
+    if type == "RBTREE":
+        verifyRules1to5(node)
+    return auditTree(node.left) and auditTree(node.right)`
       }
     }
   },
@@ -967,12 +1016,14 @@ function search(list, key):
       arrays: "Algoritmos en Arreglos",
       linear: "Listas, Pilas y Colas",
       sorting: "Algoritmos de Ordenamiento",
+      btree: "Árbol-B (Multicamino)",
       trees: "Árboles (BST, AVL, Rojinegro, B-Tree)",
       heaps: "Montículos (Heaps) y Colas de Prioridad",
       graphs: "Algoritmos en Grafos",
       hashing: "Tablas Hash",
-      dp: "Programación Dinámica",
-      compression: "Compresión (Huffman)"
+      dp: "Programación Dinâmica",
+      compression: "Compresión (Huffman)",
+      exercises: "🎓 Auditoría y Construcción Libre"
     },
     controls: {
       play: "Reproducir",
@@ -1046,7 +1097,8 @@ function search(list, key):
     tabs: {
       explanation: "Explicación Didáctica",
       complexity: "Complejidades (Big-O)",
-      pseudocode: "Pseudocódigo"
+      pseudocode: "Pseudocódigo",
+      auditor: "🔍 Diagnóstico de Errores"
     },
     explanations: {
       avl: {
@@ -1330,6 +1382,15 @@ funcion buscar(lista, clave):
         worstTime: "O(n log k)",
         space: "O(k)",
         pseudocode: `funcion huffman...`
+      },
+      exercises: {
+        title: "Modo Ejercicios y Auditoría de Árboles",
+        description: "Construya árboles binarios libremente insertando nodos en cualquier posición o cargue trampas clásicas de exámenes. El motor de auditoría comprueba invariantes de ABB, AVL, Árboles Rojinegros y Heaps, diagnosticando violaciones y acciones correctivas.",
+        bestTime: "O(n)",
+        avgTime: "O(n)",
+        worstTime: "O(n)",
+        space: "O(h)",
+        pseudocode: `funcion auditarArbol(nodo, minVal, maxVal)...`
       }
     }
   }
