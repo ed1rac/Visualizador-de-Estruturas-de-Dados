@@ -8,6 +8,18 @@ export class GraphAlgorithms {
     this.viewMode = 'logical'; // 'logical' | 'adjList' | 'adjMatrix'
     this.vertices = [];
     this.edges = [];
+    this.isWeighted = true;
+  }
+
+  setWeighted(isWeighted) {
+    this.isWeighted = Boolean(isWeighted);
+    if (!this.isWeighted) {
+      this.edges.forEach(e => { e.weight = null; });
+    } else {
+      this.edges.forEach(e => {
+        if (e.weight === null || e.weight === undefined) e.weight = 1;
+      });
+    }
   }
 
   clear() {
@@ -38,25 +50,36 @@ export class GraphAlgorithms {
     return this.buildScene([], id, [], `Vértice ${label} adicionado ao grafo.`);
   }
 
-  addEdge(uId, vId, weight = 1) {
+  addEdge(uId, vId, weight = null) {
     uId = Number(uId);
     vId = Number(vId);
-    weight = Number(weight) || 1;
 
     const uNode = this.vertices.find(v => v.id === uId);
     const vNode = this.vertices.find(v => v.id === vId);
-    if (!uNode || !vNode || uId === vId) return null;
+    if (!uNode || !vNode) return null;
+
+    let finalWeight = null;
+    if (this.isWeighted) {
+      finalWeight = (weight !== null && weight !== undefined && String(weight).trim() !== '') ? Number(weight) : 1;
+    }
 
     // Check if edge already exists
     const existing = this.edges.find(e => (e.u === uId && e.v === vId) || (e.u === vId && e.v === uId));
     if (existing) {
-      existing.weight = weight;
-      return this.buildScene([], null, [existing], `Peso da aresta (${uNode.label}, ${vNode.label}) atualizado para ${weight}.`);
+      existing.weight = finalWeight;
+      const weightText = finalWeight !== null ? ` atualizado para ${finalWeight}` : '';
+      return this.buildScene([], null, [existing], `Aresta (${uNode.label}, ${vNode.label})${weightText}.`);
     }
 
-    const newEdge = { u: uId, v: vId, weight };
+    const newEdge = { u: uId, v: vId, weight: finalWeight };
     this.edges.push(newEdge);
-    return this.buildScene([], null, [newEdge], `Aresta adicionada entre ${uNode.label} e ${vNode.label} (peso ${weight}).`);
+
+    const isLoop = (uId === vId);
+    const msg = isLoop
+      ? `Laço (self-loop) adicionado no vértice ${uNode.label}${finalWeight !== null ? ` (peso ${finalWeight})` : ''}.`
+      : `Aresta adicionada entre ${uNode.label} e ${vNode.label}${finalWeight !== null ? ` (peso ${finalWeight})` : ''}.`;
+
+    return this.buildScene([], null, [newEdge], msg);
   }
 
   generateRandomGraph(requestedCount = null) {
@@ -91,7 +114,7 @@ export class GraphAlgorithms {
       const u = connected[uIdx];
       const remIdx = Math.floor(Math.random() * remaining.length);
       const v = remaining.splice(remIdx, 1)[0];
-      const weight = Math.floor(Math.random() * 9) + 1;
+      const weight = this.isWeighted ? (Math.floor(Math.random() * 9) + 1) : null;
       this.edges.push({ u, v, weight });
       connected.push(v);
     }
@@ -102,7 +125,8 @@ export class GraphAlgorithms {
       const u = Math.floor(Math.random() * count);
       const v = Math.floor(Math.random() * count);
       if (u !== v && !this.edges.some(e => (e.u === u && e.v === v) || (e.u === v && e.v === u))) {
-        this.edges.push({ u, v, weight: Math.floor(Math.random() * 10) + 1 });
+        const weight = this.isWeighted ? (Math.floor(Math.random() * 10) + 1) : null;
+        this.edges.push({ u, v, weight });
       }
     }
 
@@ -130,8 +154,11 @@ export class GraphAlgorithms {
 
     // Add Edges
     this.edges.forEach(e => {
-      const uNode = this.vertices[e.u];
-      const vNode = this.vertices[e.v];
+      const uNode = this.vertices.find(v => v.id === e.u);
+      const vNode = this.vertices.find(v => v.id === e.v);
+      if (!uNode || !vNode) return;
+
+      const isSelfLoop = (e.u === e.v);
       const isEdgeHighlighted = highlightedEdges.some(
         he => (he.u === e.u && he.v === e.v) || (he.u === e.v && he.v === e.u)
       );
@@ -139,7 +166,9 @@ export class GraphAlgorithms {
       links.push({
         x1: uNode.x, y1: uNode.y,
         x2: vNode.x, y2: vNode.y,
-        weight: e.weight,
+        r1: 22, r2: 22,
+        isSelfLoop,
+        weight: (this.isWeighted && e.weight !== null && e.weight !== undefined) ? e.weight : null,
         highlighted: isEdgeHighlighted,
         color: isEdgeHighlighted ? '#10b981' : '#64748b',
         width: isEdgeHighlighted ? 3.5 : 2
@@ -300,13 +329,15 @@ export class GraphAlgorithms {
         else if (e.v === u) v = e.u;
 
         if (v !== null && !visited.has(v)) {
-          const newDist = dist[u] + e.weight;
+          const edgeCost = (e.weight !== null && e.weight !== undefined && !isNaN(e.weight)) ? Number(e.weight) : 1;
+          const newDist = dist[u] + edgeCost;
           if (newDist < dist[v]) {
             dist[v] = newDist;
             parent[v] = u;
 
+            const weightInfo = this.isWeighted ? `, peso ${edgeCost}` : '';
             frames.push({
-              ...this.buildScene(Array.from(visited), u, treeEdges, `Aresta (${this.vertices[u].label}-${this.vertices[v].label}, peso ${e.weight}) relaxada! Nova dist[${this.vertices[v].label}] = ${newDist}.`),
+              ...this.buildScene(Array.from(visited), u, treeEdges, `Aresta (${this.vertices[u].label}-${this.vertices[v].label}${weightInfo}) relaxada! Nova dist[${this.vertices[v].label}] = ${newDist}.`),
               message: `Caminho mais curto encontrado para ${this.vertices[v].label}: ${newDist} (via ${this.vertices[u].label}).`
             });
           }

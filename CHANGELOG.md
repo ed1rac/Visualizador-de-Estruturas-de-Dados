@@ -1,5 +1,36 @@
 # 📋 CHANGELOG - Visualizador de Estruturas de Dados & Algoritmos
 
+## [2.2.0] - 2026-10-21
+### Árvores-B Flexíveis, Auditoria Multi-Estrutura, Grafos Aprimorados e Melhorias de Espaço
+
+1. **Recolhimento do Menu Lateral ("Estruturas Principais"):**
+   - Implementado botão **☰ Menu** no cabeçalho superior e **◀** na barra lateral para recolher e expandir o menu com 1 clique.
+   - O canvas recalcula suas dimensões e limites automaticamente, maximizando a área de exibição para estruturas profundas e volumosas.
+
+2. **Árvores-B com Ordens Flexíveis (M = 3 a 8):**
+   - Suporte a ordens configuráveis arbitrárias: **M=3 (Árvore 2-3)**, **M=4 (Árvore 2-3-4)**, **M=5**, **M=6**, **M=7** e **M=8**.
+   - Exibição dinâmica em tempo real no cabeçalho e na barra de ferramentas dos limites teóricos de ocupação: chaves mínimas $\lceil M/2 \rceil - 1$, chaves máximas $M - 1$, e filhos mínimos e máximos.
+
+3. **🎓 Expansão do Modo Exercícios e Auditoria:**
+   - **Árvores-B:** Diagnóstico automático de overflow de chaves sem split, underflow sem empréstimo/fusão, violação de intervalos multiway entre subárvores e desequilíbrio na profundidade das folhas.
+   - **Listas Encadeadas:** Diagnóstico de ciclos acidentais em listas lineares simples, inconsistência de ponteiros bidirecionais `prev != next` em listas duplas e ponteiros órfãos/inválidos.
+   - **Grafos:** Deteção de arestas com peso negativo (que invalidam o algoritmo guloso de Dijkstra), ciclos direcionados que quebram Ordenação Topológica em DAGs e componentes desconexas.
+   - 15 novos exercícios e cenários de desafio para projeção em sala de aula com Modo Aluno (Gabarito Oculto).
+
+4. **Aprimoramentos em Grafos (Laços e Grafos Não-Ponderados):**
+   - Suporte intuitivo a **Laços (Self-Loops)**: Arestas ligadas do vértice a ele mesmo com desenho em arco circular dedicado.
+   - Opção para desenhar **Grafos Não-Ponderados** (sem exibir números/badges de pesos) via checkbox "☑ Ponderado".
+   - Algoritmos de BFS e Dijkstra integrados e compatíveis com arestas com ou sem peso.
+
+5. **Correção de Explicações e Pseudocódigos Dinâmicos:**
+   - Adicionada explicação teórica, análise de complexidade e pseudocódigo dedicados da **Árvore-B** no painel lateral (eliminando texto residual da AVL).
+   - Corrigido o chaveamento do **Problema do Troco Mínimo (Coin Change)** no painel explicativo.
+
+6. **Padronização Terminológica Rigorosa:**
+   - Substituição de todas as ocorrências de "Fator de Balanço" por **"Fator de Balanceamento"** em conformidade com o uso acadêmico em sala de aula.
+
+---
+
 ## [2.1.0] - 2026-10-15
 ### Aprimoramentos Avançados de Didática e Estruturas de Dados
 
@@ -40,8 +71,8 @@ Esta versão representa uma reescrita completa e modernização do aplicativo ed
 
 ### 🌟 Principais Novidades & Melhorias Solicitadas
 
-#### 1. Árvore AVL com Fatores de Balanço Flexíveis
-- **Cálculo Preciso do Fator de Balanço (FB):** Cada nó agora exibe em tempo real sua altura e o respectivo Fator de Balanço.
+#### 1. Árvore AVL com Fatores de Balanceamento Flexíveis
+- **Cálculo Preciso do Fator de Balanceamento (FB):** Cada nó agora exibe em tempo real sua altura e o respectivo Fator de Balanceamento.
 - **Alternância de Convenção pelo Usuário:**
   - *Convenção Tradicional PT/BR:* $FB = \text{Altura(Esquerda)} - \text{Altura(Direita)}$ (usada por Ziviani, Szwarcfiter).
   - *Convenção Internacional / CLRS:* $FB = \text{Altura(Direita)} - \text{Altura(Esquerda)}$ (usada por Cormen et al.).

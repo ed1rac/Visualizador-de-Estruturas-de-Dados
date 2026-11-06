@@ -88,6 +88,30 @@ class App {
       this.canvas.render();
     });
 
+    // Sidebar Toggle & Collapse
+    const appSidebar = document.querySelector('.app-sidebar');
+    const toggleSidebar = () => {
+      if (!appSidebar) return;
+      appSidebar.classList.toggle('collapsed');
+      setTimeout(() => this.canvas.initCanvasSize(), 50);
+      setTimeout(() => this.canvas.initCanvasSize(), 250);
+    };
+
+    const btnToggleSidebar = document.getElementById('btnToggleSidebar');
+    if (btnToggleSidebar) {
+      btnToggleSidebar.addEventListener('click', toggleSidebar);
+    }
+    const btnCloseSidebar = document.getElementById('btnCloseSidebar');
+    if (btnCloseSidebar) {
+      btnCloseSidebar.addEventListener('click', () => {
+        if (appSidebar) {
+          appSidebar.classList.add('collapsed');
+          setTimeout(() => this.canvas.initCanvasSize(), 50);
+          setTimeout(() => this.canvas.initCanvasSize(), 250);
+        }
+      });
+    }
+
     // Zoom Controls
     document.getElementById('btnZoomIn').addEventListener('click', () => this.canvas.zoomIn());
     document.getElementById('btnZoomOut').addEventListener('click', () => this.canvas.zoomOut());
@@ -392,7 +416,13 @@ class App {
             <option value="3" ${this.btree.order === 3 ? 'selected' : ''}>M=3 (Árvore 2-3 | 1 a 2 chaves)</option>
             <option value="4" ${this.btree.order === 4 ? 'selected' : ''}>M=4 (Árvore 2-3-4 | 1 a 3 chaves)</option>
             <option value="5" ${this.btree.order === 5 ? 'selected' : ''}>M=5 (Ordem 5 | 2 a 4 chaves)</option>
+            <option value="6" ${this.btree.order === 6 ? 'selected' : ''}>M=6 (Ordem 6 | 2 a 5 chaves)</option>
+            <option value="7" ${this.btree.order === 7 ? 'selected' : ''}>M=7 (Ordem 7 | 3 a 6 chaves)</option>
+            <option value="8" ${this.btree.order === 8 ? 'selected' : ''}>M=8 (Ordem 8 | 3 a 7 chaves)</option>
           </select>
+          <span class="badge-tag-balance" style="font-size:0.8rem; padding:0.25rem 0.6rem; border-radius:4px;" title="Limites teóricos de ocupação da Árvore-B">
+            Chaves: mín ${this.btree.minKeys}, máx ${this.btree.maxKeys} | Filhos: mín ${this.btree.minChildren}, máx ${this.btree.maxChildren}
+          </span>
         </div>
       `;
 
@@ -596,11 +626,14 @@ class App {
           <button id="btnAddVertex" class="btn-primary">+ Vértice</button>
         </div>
         <div class="input-group">
+          <label style="font-size:0.8rem; font-weight:600; display:flex; align-items:center; gap:5px; cursor:pointer;" title="Alternar pesos nas arestas">
+            <input type="checkbox" id="checkGraphWeighted" ${this.graphs.isWeighted ? 'checked' : ''} /> Ponderado
+          </label>
           <select id="selectEdgeU" class="select-custom" style="min-width:55px;">${vOptions}</select>
           <span style="font-size:0.85rem; font-weight:bold; color:var(--text-secondary);">➔</span>
           <select id="selectEdgeV" class="select-custom" style="min-width:55px;">${vOptions}</select>
-          <input type="number" id="inputEdgeWeight" class="input-custom" placeholder="Peso" value="1" style="width:55px;" />
-          <button id="btnAddEdge" class="btn-primary">+ Aresta</button>
+          <input type="number" id="inputEdgeWeight" class="input-custom" placeholder="Peso" value="1" style="width:55px; ${this.graphs.isWeighted ? '' : 'display:none;'}" />
+          <button id="btnAddEdge" class="btn-primary">+ Aresta / Laço</button>
         </div>
         <div class="input-group">
           <button id="btnBfs" class="btn-primary">BFS (Largura)</button>
@@ -609,6 +642,14 @@ class App {
           <button id="btnClearGraph" class="btn-secondary">${t.controls.clear}</button>
         </div>
       `;
+
+      document.getElementById('checkGraphWeighted').addEventListener('change', (e) => {
+        this.graphs.setWeighted(e.target.checked);
+        const inputWeight = document.getElementById('inputEdgeWeight');
+        if (inputWeight) inputWeight.style.display = e.target.checked ? '' : 'none';
+        const scene = this.graphs.buildScene();
+        this.canvas.setScene(scene.elements, scene.links, scene.decorations);
+      });
 
       document.getElementById('btnAddVertex').addEventListener('click', () => {
         const label = document.getElementById('inputVertexLabel').value;
@@ -621,7 +662,8 @@ class App {
       document.getElementById('btnAddEdge').addEventListener('click', () => {
         const u = Number(document.getElementById('selectEdgeU').value);
         const v = Number(document.getElementById('selectEdgeV').value);
-        const w = Number(document.getElementById('inputEdgeWeight').value || 1);
+        const weightInput = document.getElementById('inputEdgeWeight');
+        const w = (this.graphs.isWeighted && weightInput && weightInput.value !== '') ? Number(weightInput.value) : null;
         if (!isNaN(u) && !isNaN(v)) {
           this.graphs.addEdge(u, v, w);
           const scene = this.graphs.buildScene();
@@ -952,6 +994,7 @@ class App {
       const allNodes = this.treeAuditor.getAllNodes();
       const parentOptions = allNodes.map(n => `<option value="${n.id}">Nó #${n.id} (valor: ${n.key})</option>`).join('');
       const removeOptions = allNodes.map(n => `<option value="${n.id}">Nó #${n.id} (valor: ${n.key})</option>`).join('');
+      const isBinaryTree = ['bst', 'avl', 'rbtree', 'minheap', 'maxheap'].includes(this.treeAuditor.targetType);
 
       toolbar.innerHTML = `
         <div class="input-group">
@@ -960,6 +1003,9 @@ class App {
             <option value="bst" ${this.treeAuditor.targetType === 'bst' ? 'selected' : ''}>🌲 ABB (Busca Binária)</option>
             <option value="avl" ${this.treeAuditor.targetType === 'avl' ? 'selected' : ''}>⚖️ Árvore AVL</option>
             <option value="rbtree" ${this.treeAuditor.targetType === 'rbtree' ? 'selected' : ''}>🔴⚫ Árvore Rubro-Negra</option>
+            <option value="btree" ${this.treeAuditor.targetType === 'btree' ? 'selected' : ''}>🌳 Árvore-B</option>
+            <option value="linkedlist" ${this.treeAuditor.targetType === 'linkedlist' ? 'selected' : ''}>🔗 Listas Encadeadas</option>
+            <option value="graphs" ${this.treeAuditor.targetType === 'graphs' ? 'selected' : ''}>🕸️ Grafos (Algoritmos)</option>
             <option value="minheap" ${this.treeAuditor.targetType === 'minheap' ? 'selected' : ''}>⛰️ Min-Heap</option>
             <option value="maxheap" ${this.treeAuditor.targetType === 'maxheap' ? 'selected' : ''}>🏔️ Max-Heap</option>
           </select>
@@ -984,6 +1030,27 @@ class App {
               <option value="rb_black_height">Regra 5: Altura-Preta Desigual (bh)</option>
               <option value="rb_valid">Rubro-Negra 100% Válida</option>
             </optgroup>
+            <optgroup label="Árvore-B">
+              <option value="btree_overflow">Árvore-B: Overflow de Chaves sem Cisão (M=3)</option>
+              <option value="btree_range_err">Árvore-B: Violação de Intervalo em Subárvore Filha</option>
+              <option value="btree_depth_err">Árvore-B: Violação de Altura Uniforme das Folhas</option>
+              <option value="btree_underflow">Árvore-B: Underflow de Nó (Menos Chaves que o Mínimo)</option>
+              <option value="btree_valid">Árvore-B Válida e Balanceada</option>
+            </optgroup>
+            <optgroup label="Listas Encadeadas">
+              <option value="ll_cycle_err">Lista Simples: Ciclo Acidental Não-Intencional</option>
+              <option value="ll_inconsistent_prev">Lista Dupla: Inconsistência de Ponteiro Anterior (prev != next)</option>
+              <option value="ll_dangling_tail">Lista Simples: Ponteiro Órfão / Inválido</option>
+              <option value="ll_valid_singly">Lista Simples Válida (Terminada em NULL)</option>
+              <option value="ll_valid_doubly">Lista Duplamente Encadeada Válida</option>
+            </optgroup>
+            <optgroup label="Grafos">
+              <option value="graph_dijkstra_neg">Grafo: Aresta com Peso Negativo (Falha no Dijkstra)</option>
+              <option value="graph_dag_cycle">Grafo: Ciclo Direcionado (Impede Ordenação Topológica)</option>
+              <option value="graph_disconnected">Grafo: Componentes Desconexas (Vértice Isolado)</option>
+              <option value="graph_valid_dag">Grafo: DAG Válido para Ordenação Topológica</option>
+              <option value="graph_valid_weighted">Grafo: Ponderado Válido para Dijkstra</option>
+            </optgroup>
             <optgroup label="Heaps Binários">
               <option value="heap_min_err">Min-Heap: Inversão Filho &lt; Pai</option>
               <option value="heap_shape_err">Violação de Árvore Quase-Completa</option>
@@ -992,37 +1059,44 @@ class App {
           <button id="btnLoadPreset" class="btn-secondary">Carregar</button>
         </div>
 
-        <div class="input-group">
-          <input type="number" id="inputNodeVal" class="input-custom" placeholder="Valor" style="width:75px;" />
-          <select id="selectParentNode" class="select-custom" style="max-width:140px;">
-            <option value="root_new">Definir como Raiz</option>
-            ${parentOptions}
-          </select>
-          <select id="selectPosition" class="select-custom">
-            <option value="left">Filho Esq</option>
-            <option value="right">Filho Dir</option>
-          </select>
-          ${this.treeAuditor.targetType === 'rbtree' ? `
-            <select id="selectNodeColor" class="select-custom">
-              <option value="RED">🔴 Vermelho</option>
-              <option value="BLACK">⚫ Preto</option>
+        ${isBinaryTree ? `
+          <div class="input-group">
+            <input type="number" id="inputNodeVal" class="input-custom" placeholder="Valor" style="width:75px;" />
+            <select id="selectParentNode" class="select-custom" style="max-width:140px;">
+              <option value="root_new">Definir como Raiz</option>
+              ${parentOptions}
             </select>
-          ` : ''}
-          <button id="btnInsertFree" class="btn-primary">➕ Inserir</button>
-        </div>
-
-        <div class="input-group">
-          ${allNodes.length > 0 ? `
-            <select id="selectDeleteNode" class="select-custom" style="max-width:140px;">
-              ${removeOptions}
+            <select id="selectPosition" class="select-custom">
+              <option value="left">Filho Esq</option>
+              <option value="right">Filho Dir</option>
             </select>
-            <button id="btnDeleteFree" class="btn-secondary" style="border-color:#ef4444; color:#ef4444;">🗑️ Remover</button>
             ${this.treeAuditor.targetType === 'rbtree' ? `
-              <button id="btnToggleColorFree" class="btn-secondary">🎨 Inverter Cor</button>
+              <select id="selectNodeColor" class="select-custom">
+                <option value="RED">🔴 Vermelho</option>
+                <option value="BLACK">⚫ Preto</option>
+              </select>
             ` : ''}
-          ` : ''}
-          <button id="btnClearFree" class="btn-secondary">🧹 Limpar</button>
-        </div>
+            <button id="btnInsertFree" class="btn-primary">➕ Inserir</button>
+          </div>
+
+          <div class="input-group">
+            ${allNodes.length > 0 ? `
+              <select id="selectDeleteNode" class="select-custom" style="max-width:140px;">
+                ${removeOptions}
+              </select>
+              <button id="btnDeleteFree" class="btn-secondary" style="border-color:#ef4444; color:#ef4444;">🗑️ Remover</button>
+              ${this.treeAuditor.targetType === 'rbtree' ? `
+                <button id="btnToggleColorFree" class="btn-secondary">🎨 Inverter Cor</button>
+              ` : ''}
+            ` : ''}
+            <button id="btnClearFree" class="btn-secondary">🧹 Limpar</button>
+          </div>
+        ` : `
+          <div class="input-group">
+            <span style="font-size:0.8rem; color:var(--text-secondary); font-style:italic;">Selecione um exercício de ${this.treeAuditor.getTargetName(this.treeAuditor.targetType)} acima para auditar.</span>
+            <button id="btnClearFree" class="btn-secondary">🧹 Limpar</button>
+          </div>
+        `}
 
         <div class="input-group">
           <button id="btnToggleReveal" class="btn-secondary" style="font-weight:600; border-color:${this.treeAuditor.revealMode ? '#0284c7' : '#d97706'}; color:${this.treeAuditor.revealMode ? '#0284c7' : '#d97706'};">
@@ -1044,6 +1118,18 @@ class App {
 
       document.getElementById('selectAuditorType').addEventListener('change', (e) => {
         this.treeAuditor.targetType = e.target.value;
+        const defaults = {
+          bst: 'bst_ancestor_trap',
+          avl: 'avl_unbalanced_ll',
+          rbtree: 'rb_red_root',
+          btree: 'btree_overflow',
+          linkedlist: 'll_cycle_err',
+          graphs: 'graph_dijkstra_neg',
+          minheap: 'heap_min_err',
+          maxheap: 'heap_shape_err'
+        };
+        const preset = defaults[e.target.value] || 'bst_ancestor_trap';
+        this.treeAuditor.loadPreset(preset);
         refreshAll();
       });
 
@@ -1053,17 +1139,20 @@ class App {
         refreshAll();
       });
 
-      document.getElementById('btnInsertFree').addEventListener('click', () => {
-        const key = document.getElementById('inputNodeVal').value;
-        if (key === '') return;
-        const parentId = document.getElementById('selectParentNode').value;
-        const position = document.getElementById('selectPosition').value;
-        const colorEl = document.getElementById('selectNodeColor');
-        const color = colorEl ? colorEl.value : 'BLACK';
+      const btnInsert = document.getElementById('btnInsertFree');
+      if (btnInsert) {
+        btnInsert.addEventListener('click', () => {
+          const key = document.getElementById('inputNodeVal').value;
+          if (key === '') return;
+          const parentId = document.getElementById('selectParentNode').value;
+          const position = document.getElementById('selectPosition').value;
+          const colorEl = document.getElementById('selectNodeColor');
+          const color = colorEl ? colorEl.value : 'BLACK';
 
-        this.treeAuditor.insertFreeNode(key, parentId === 'root_new' ? null : parentId, position, color);
-        refreshAll();
-      });
+          this.treeAuditor.insertFreeNode(key, parentId === 'root_new' ? null : parentId, position, color);
+          refreshAll();
+        });
+      }
 
       const btnDelete = document.getElementById('btnDeleteFree');
       if (btnDelete) {
@@ -1265,7 +1354,7 @@ class App {
       container.innerHTML = `
         <h4>${info.title}</h4>
         <p>${info.description}</p>
-        ${info.bfExplanation ? `<p style="margin-top:0.8rem; padding:0.6rem; background:var(--accent-light); border-radius:6px; color:var(--accent-primary); font-size:0.82rem;"><strong>Fator de Balanço:</strong> ${info.bfExplanation}</p>` : ''}
+        ${info.bfExplanation ? `<p style="margin-top:0.8rem; padding:0.6rem; background:var(--accent-light); border-radius:6px; color:var(--accent-primary); font-size:0.82rem;"><strong>Fator de Balanceamento:</strong> ${info.bfExplanation}</p>` : ''}
         ${info.properties ? `<p style="margin-top:0.8rem; white-space:pre-line; font-size:0.82rem; background:var(--bg-tertiary); padding:0.6rem; border-radius:6px;"><strong>Regras Invariantes:</strong>\n${info.properties}</p>` : ''}
       `;
     } else if (this.activeDrawerTab === 'complexity') {

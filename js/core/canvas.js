@@ -401,6 +401,57 @@ export class VisualizerCanvas {
     let x2 = link.x2;
     let y2 = link.y2;
 
+    const isSelfLoop = link.isSelfLoop || (x1 === x2 && y1 === y2);
+
+    if (isSelfLoop) {
+      const r = link.r1 || 22;
+      const loopRadius = 18;
+      const loopCenterY = y1 - r - loopRadius * 0.75;
+
+      ctx.lineWidth = link.highlighted ? 3.5 : (link.width || 2);
+      ctx.strokeStyle = link.highlighted 
+        ? '#f59e0b' 
+        : (link.color || (isDark ? '#475569' : '#94a3b8'));
+
+      ctx.beginPath();
+      // Draw arc looped above vertex
+      ctx.arc(x1, loopCenterY, loopRadius, Math.PI * 0.2, Math.PI * 0.8, true);
+      ctx.stroke();
+
+      // Directed Arrow Head for self loop
+      if (link.directed) {
+        const endAngle = Math.PI * 0.8;
+        const arrowX = x1 + loopRadius * Math.cos(endAngle);
+        const arrowY = loopCenterY + loopRadius * Math.sin(endAngle);
+        ctx.fillStyle = ctx.strokeStyle;
+        ctx.beginPath();
+        ctx.moveTo(arrowX, arrowY);
+        ctx.lineTo(arrowX - 8, arrowY - 4);
+        ctx.lineTo(arrowX - 2, arrowY - 9);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      // Edge Weight (only if defined and not null/empty)
+      if (link.weight !== undefined && link.weight !== null && String(link.weight).trim() !== '') {
+        const weightStr = String(link.weight);
+        ctx.font = 'bold 12px "Inter", sans-serif';
+        const textWidth = ctx.measureText(weightStr).width;
+        const textY = loopCenterY - loopRadius - 2;
+
+        ctx.fillStyle = isDark ? 'rgba(15, 23, 42, 0.9)' : 'rgba(255, 255, 255, 0.9)';
+        ctx.fillRect(x1 - textWidth / 2 - 4, textY - 14, textWidth + 8, 16);
+
+        ctx.fillStyle = isDark ? '#38bdf8' : '#0284c7';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(weightStr, x1, textY - 6);
+      }
+
+      ctx.restore();
+      return;
+    }
+
     const r1 = link.r1 || 0;
     const r2 = link.r2 || 0;
     const dx = x2 - x1;
@@ -445,15 +496,21 @@ export class VisualizerCanvas {
       ctx.fill();
     }
 
-    // Edge Weight / Label
-    if (link.weight !== undefined) {
+    // Edge Weight / Label (only if defined, not null and not empty)
+    if (link.weight !== undefined && link.weight !== null && String(link.weight).trim() !== '') {
       const midX = (x1 + x2) / 2;
       const midY = (y1 + y2) / 2;
-      ctx.fillStyle = isDark ? '#38bdf8' : '#0284c7';
+      const weightStr = String(link.weight);
       ctx.font = 'bold 12px "Inter", sans-serif';
+      const textWidth = ctx.measureText(weightStr).width;
+
+      ctx.fillStyle = isDark ? 'rgba(15, 23, 42, 0.88)' : 'rgba(255, 255, 255, 0.88)';
+      ctx.fillRect(midX - textWidth / 2 - 4, midY - 14, textWidth + 8, 16);
+
+      ctx.fillStyle = isDark ? '#38bdf8' : '#0284c7';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(String(link.weight), midX + 8, midY - 8);
+      ctx.fillText(weightStr, midX, midY - 6);
     }
 
     ctx.restore();

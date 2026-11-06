@@ -1,4 +1,4 @@
-# 🚀 Visualizador de Estruturas de Dados & Algoritmos (v2.1.0)
+# 🚀 Visualizador de Estruturas de Dados & Algoritmos (v2.2.0)
 
 > **Reconstrução, Modernização e Extensão** do aplicativo educacional clássico `visualization.jar` (originalmente desenvolvido pelo Prof. David Galles na University of San Francisco - USFCA).
 > 
@@ -24,29 +24,34 @@ O projeto foi projetado para oferecer máxima acessibilidade e simplicidade tant
 
 Este software foi recriado a partir da análise detalhada por **Engenharia Reversa (REA)** do aplicativo legado em Java (`visualization.jar`). Ele transforma uma aplicação desktop Swing de 2006 em uma moderna plataforma interativa e responsiva, com foco no rigor didático para o ensino universitário de Ciência da Computação e Engenharia.
 
-### 🌟 Destaques e Recursos (v2.1.0):
+### 🌟 Destaques e Recursos (v2.2.0):
 
-1. **Barra de Status com Badges Didáticos:**
-   - Exibição categorizada das rotações AVL: `[ROTAÇÃO SIMPLES À DIREITA (LL)]`, `[ROTAÇÃO SIMPLES À ESQUERDA (RR)]`, `[ROTAÇÃO DUPLA ESQUERDA-DIREITA (LR)]` e `[ROTAÇÃO DUPLA DIREITA-ESQUERDA (RL)]`.
-   - Identificação dos casos da Árvore Rubro-Negra: `[RECOLORAÇÃO (CASO 1: Tio Vermelho)]`, `[ROTAÇÃO (CASO 2: Joelho)]` e `[ROTAÇÃO E RECOLORAÇÃO (CASO 3: Reta)]`.
+1. **Recolhimento do Menu Lateral ("Estruturas Principais"):**
+   - Botão **☰ Menu** no cabeçalho superior e botão **◀** no menu lateral para ocultar/mostrar a barra de navegação com 1 clique, maximizando a área de visualização das estruturas de dados com redimensionamento fluido automático do canvas.
 
-2. **Árvores AVL com Fator de Balanço Customizável:**
-   - Exibição em tempo real de altura e $FB$ em cada nó.
-   - Alternância entre as convenções didáticas:
-     - **Esquerda - Direita:** $\text{Altura(Esq)} - \text{Altura(Dir)}$ (padrão em livros no Brasil, ex: Ziviani/Szwarcfiter).
-     - **Direita - Esquerda:** $\text{Altura(Dir)} - \text{Altura(Esq)}$ (padrão internacional, ex: Cormen/CLRS).
+2. **Árvores-B com Ordens Flexíveis (M = 3 a 8) e Metadados em Tempo Real:**
+   - Suporte dinâmico a ordens customizáveis: **M=3 (Árvore 2-3)**, **M=4 (Árvore 2-3-4)**, **M=5**, **M=6**, **M=7** e **M=8**.
+   - Exibição em tempo real da quantidade mínima e máxima de chaves e filhos no cabeçalho e na barra de ferramentas.
+   - Animação passo a passo de inserção com **Cisão (Split)** e **Promoção da Chave Mediana**, remoção com **Empréstimo/Rotação** e **Fusão (Merge)**.
 
-3. **Árvores Rubro-Negras (Red-Black Trees):**
-   - Cores reais (Vermelho e Preto) com controle visual estrito das 5 propriedades invariantes.
-   - Opção para **Mostrar ou Ocultar nós NIL (folhas pretas)**.
-   - Animação passo a passo de inserção, recolorações (tio vermelho) e rotações (tio preto).
+3. **🎓 Modo Exercícios & Auditoria Expandido (Árvores-B, Listas Encadeadas e Grafos):**
+   - **Árvores-B:** Diagnóstico automático de overflow de chaves sem split, underflow, violação de limites em subárvores e desequilíbrio na profundidade das folhas.
+   - **Listas Encadeadas:** Detecção de ciclos acidentais em listas simples, inconsistência de ponteiros `prev != next` em listas duplas e ponteiros órfãos.
+   - **Grafos:** Detecção de arestas com pesos negativos (incompatíveis com a premissa gulosa de Dijkstra), ciclos direcionados que impedem Ordenação Topológica (DAGs) e componentes desconexas.
+   - **Modo Aluno (Gabarito Oculto):** Projeção para a turma responder ao desafio antes de revelar o diagnóstico oficial.
 
-4. **Árvores-B (B-Trees Multiway):**
-   - Suporte completo a ordens configuráveis: **Ordem 3 (Árvore 2-3)**, **Ordem 4 (Árvore 2-3-4)** e **Ordem 5**.
-   - Visualização segmentada multi-chave com células retangulares e ponteiros direcionados aos nós filhos.
-   - Animação passo a passo de inserção com **Cisão de Nó (Split)** e **Promoção da Chave Mediana** até a raiz.
-   - Animação de remoção com substituição por predecessor em-ordem, **Empréstimo/Rotação entre irmãos** e **Fusão de Nós (Merge)**.
-   - Busca comparativa navegando pelas chaves e descendo pelos ramos específicos.
+4. **Interatividade em Grafos (Laços/Self-Loops e Grafos Sem Peso):**
+   - Suporte intuitivo a **Laços (Self-Loops)**: Arestas ligadas ao próprio vértice com arco circular e suporte a peso/direção.
+   - Alternância facilitada entre **Grafo Ponderado** e **Grafo Não-Ponderado (sem pesos)** com checkbox "☑ Ponderado".
+   - Execução transparente de **BFS** e **Dijkstra** em grafos ponderados ou não-ponderados.
+
+5. **Árvores AVL com Fator de Balanceamento Customizável:**
+   - Padronização rigorosa da terminologia para **Fator de Balanceamento (FB)** em toda a interface e documentação.
+   - Alternância entre convenções: $\text{Altura(Esq)} - \text{Altura(Dir)}$ [Tradicional PT/BR] e $\text{Altura(Dir)} - \text{Altura(Esq)}$ [Cormen/CLRS].
+
+6. **Explicações Teóricas e Pseudocódigos Dinâmicos Corrigidos:**
+   - Painel explicativo e de complexidade específico para a **Árvore-B**, eliminando texto residual da AVL.
+   - Explicação dedicada e pseudocódigo em vetor 1D para o **Problema do Troco Mínimo (Coin Change)**.
 
 12. **Todas as Estruturas Lineares (LIFO, FIFO e Encadeada):**
    - **Pilha (Stack):** Operações `Push`, `Pop` e apontador de `TOPO`.

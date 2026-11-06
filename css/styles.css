@@ -121,6 +121,38 @@ body {
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.app-sidebar.collapsed {
+  display: none !important;
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.8rem 1rem 0.2rem;
+}
+
+.sidebar-header .sidebar-section-title {
+  padding: 0;
+}
+
+.btn-icon-sidebar {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  transition: all 0.15s ease;
+}
+
+.btn-icon-sidebar:hover {
+  color: var(--accent-primary);
+  border-color: var(--accent-primary);
 }
 
 .sidebar-section-title {

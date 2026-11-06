@@ -1,5 +1,5 @@
 /**
- * Electron Main Process - Visualizador de Estruturas de Dados & Algoritmos v2.1.0
+ * Electron Main Process - Visualizador de Estruturas de Dados & Algoritmos v2.2.0
  */
 
 const { app, BrowserWindow, Menu, shell } = require('electron');

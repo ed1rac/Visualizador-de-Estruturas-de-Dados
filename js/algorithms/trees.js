@@ -279,7 +279,7 @@ export class TreeAlgorithms {
 
       this.updateHeight(node);
       const bf = this.getBalanceFactor(node);
-      recordStep(`Retornando ao nó ${node.key}. Altura atualizada: ${node.height}, Fator de Balanço (FB): ${bf}`, node.key);
+      recordStep(`Retornando ao nó ${node.key}. Altura atualizada: ${node.height}, Fator de Balanceamento (FB): ${bf}`, node.key);
 
       // Check balance violations depending on chosen convention:
       // In Left-Right: bf > 1 is Left-heavy, bf < -1 is Right-heavy
@@ -439,7 +439,7 @@ export class TreeAlgorithms {
 
       this.updateHeight(node);
       const bf = this.getBalanceFactor(node);
-      recordStep(`Retornando ao nó ${node.key}. Altura recalculada: ${node.height}, Fator de Balanço: ${bf}`, node.key);
+      recordStep(`Retornando ao nó ${node.key}. Altura recalculada: ${node.height}, Fator de Balanceamento: ${bf}`, node.key);
 
       const isLeftHeavy = this.bfConvention === 'leftMinusRight' ? (bf > 1) : (bf < -1);
       const isRightHeavy = this.bfConvention === 'leftMinusRight' ? (bf < -1) : (bf > 1);

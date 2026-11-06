@@ -37,7 +37,7 @@ export class BTreeAlgorithms {
 
   setOrder(newOrder) {
     const ord = Number(newOrder);
-    if (ord >= 3 && ord <= 6) {
+    if (ord >= 3 && ord <= 10) {
       this.order = ord;
       this.initDefaultTree();
     }
@@ -49,6 +49,14 @@ export class BTreeAlgorithms {
 
   get maxKeys() {
     return this.order - 1;
+  }
+
+  get minChildren() {
+    return Math.ceil(this.order / 2);
+  }
+
+  get maxChildren() {
+    return this.order;
   }
 
   initDefaultTree() {
@@ -251,8 +259,8 @@ export class BTreeAlgorithms {
     // Tree metadata header badge
     decorations.push({
       type: 'text',
-      text: `Árvore-B de Ordem M=${this.order} | Capacidade de chaves por nó: [${this.minKeys} ... ${this.maxKeys}]`,
-      x: 180,
+      text: `Árvore-B de Ordem M=${this.order} | Capacidade de chaves por nó: [${this.minKeys} ... ${this.maxKeys}] | Filhos por nó: [${this.minChildren} ... ${this.maxChildren}]`,
+      x: 140,
       y: 45,
       font: 'bold 13px "Inter", sans-serif',
       color: '#0284c7'

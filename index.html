@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Visualizador de Estruturas de Dados e Algoritmos v2.1.0</title>
+  <title>Visualizador de Estruturas de Dados e Algoritmos v2.2.0</title>
   <!-- Google Fonts: Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -22,10 +22,14 @@
         <line x1="12" y1="8" x2="19" y2="16"></line>
       </svg>
       <h1 id="appBrandTitle">Visualizador de Estruturas de Dados & Algoritmos</h1>
-      <span class="badge-version" id="appBrandVersion">v2.1.0</span>
+      <span class="badge-version" id="appBrandVersion">v2.2.0</span>
     </div>
 
     <div class="header-actions">
+      <!-- Sidebar Toggle -->
+      <button id="btnToggleSidebar" class="btn-action" title="Ocultar / Mostrar Menu Lateral">
+        ☰ Menu
+      </button>
       <!-- Language Selector (pt-BR, en, es) -->
       <select id="langSelect" class="select-custom" title="Mudar Idioma / Change Language">
         <option value="pt-BR" selected>🇧🇷 Português (BR)</option>
@@ -49,9 +53,12 @@
   <div class="app-layout">
     <!-- Left Navigation Sidebar -->
     <aside class="app-sidebar">
-      <div class="sidebar-section-title">Estruturas Principais</div>
+      <div class="sidebar-header">
+        <div class="sidebar-section-title">Estruturas Principais</div>
+        <button id="btnCloseSidebar" class="btn-icon-sidebar" title="Recolher Menu Lateral">◀</button>
+      </div>
       <a class="nav-item active" data-category="avl">
-        <span>Árvore AVL (Fator de Balanço)</span>
+        <span>Árvore AVL (Fator de Balanceamento)</span>
       </a>
       <a class="nav-item" data-category="rbtree">
         <span>Árvore Rubro-Negra (NIL Nodes)</span>

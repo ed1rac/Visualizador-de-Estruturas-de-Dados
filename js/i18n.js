@@ -6,13 +6,13 @@
 export const I18N = {
   'pt-BR': {
     appName: "Visualizador de Estruturas de Dados & Algoritmos",
-    appVersion: "v2.0.0",
+    appVersion: "v2.2.0",
     themeToggle: "Alternar Tema Claro/Escuro",
     categories: {
       arrays: "Algoritmos em Arrays",
       linear: "Listas, Pilhas e Filas",
       sorting: "Algoritmos de Ordenação",
-      avl: "Árvore AVL (Fator de Balanço)",
+      avl: "Árvore AVL (Fator de Balanceamento)",
       rbtree: "Árvore Rubro-Negra (NIL Nodes)",
       btree: "Árvore-B (Multiway)",
       trees: "Árvores (BST, AVL, Rubro-Negra, B-Tree)",
@@ -52,14 +52,14 @@ export const I18N = {
       swaps: "Trocas / Modificações"
     },
     treeControls: {
-      bfConvention: "Convenção Fator de Balanço (FB):",
+      bfConvention: "Convenção Fator de Balanceamento (FB):",
       bfLeftMinusRight: "Altura(Esq) - Altura(Dir) [Tradicional PT/BR]",
       bfRightMinusLeft: "Altura(Dir) - Altura(Esq) [Cormen/CLRS]",
       badgeModeLabel: "Exibir nos Nós:",
       badgeModeBoth: "FB e Altura (ex: FB: +1 | h: 3)",
-      badgeModeBf: "Apenas Fator de Balanço (ex: FB: +1)",
+      badgeModeBf: "Apenas Fator de Balanceamento (ex: FB: +1)",
       badgeModeHeight: "Apenas Altura (ex: h: 3)",
-      showHeights: "Mostrar Alturas e Fatores de Balanço",
+      showHeights: "Mostrar Alturas e Fatores de Balanceamento",
       hideHeights: "Ocultar Alturas",
       showNilNodes: "Mostrar Nós Folha NIL (Pretos)",
       hideNilNodes: "Ocultar Nós NIL",
@@ -166,6 +166,33 @@ funcao corrigirInsercaoRB(arvore, z):
                 rotacaoDireita(arvore, z.avo)
         senao: // Casos simétricos...
     arvore.raiz.cor = PRETO`
+      },
+      btree: {
+        title: "Árvore-B (Multiway Balanced Search Tree)",
+        description: "A Árvore-B é uma árvore de busca auto-balanceada generalizada onde cada nó pode conter múltiplas chaves e múltiplos filhos. Projetada especificamente para sistemas de arquivos (NTFS, Ext4, Btrfs) e sistemas de gerenciamento de bancos de dados (PostgreSQL, SQLite, MySQL InnoDB), ela minimiza o número de operações de leitura/escrita em blocos de disco mantendo uma alta taxa de ramificação. Todas as folhas encontram-se rigorosamente na mesma profundidade.",
+        properties: "1. Ordem M: Cada nó possui no máximo M filhos e M - 1 chaves.\n2. Ocupação Mínima: Todo nó interno (exceto a raiz) possui no mínimo ⌈M/2⌉ filhos e ⌈M/2⌉ - 1 chaves.\n3. Raiz: Possui entre 2 e M filhos (se não for folha) e no mínimo 1 chave.\n4. Altura Uniforme: Todas as folhas residem obrigatoriamente na mesma profundidade.\n5. Cisão (Split): Quando um nó atinge M chaves, a chave mediana é promovida para o nó pai.\n6. Remoção: Se um nó sofrer underflow, realiza-se empréstimo (rotação) com irmão adjacente ou fusão (merge) com a chave separadora do pai.",
+        bestTime: "O(1)",
+        avgTime: "O(log_M n)",
+        worstTime: "O(log_M n)",
+        space: "O(n)",
+        pseudocode: `funcao buscarBTree(no, chave):
+    i = 0
+    enquanto i < no.numChaves e chave > no.chaves[i]:
+        i = i + 1
+    se i < no.numChaves e chave == no.chaves[i]:
+        retorne (no, i) // Encontrado
+    se no.ehFolha:
+        retorne NULO // Chave não existe
+    retorne buscarBTree(no.filhos[i], chave)
+
+funcao inserirBTree(chave):
+    se raiz == NULO:
+        raiz = novoNo(ehFolha=verdadeiro, chaves=[chave])
+        retorne
+    folha = encontrarFolhaInsercao(raiz, chave)
+    inserirOrdenado(folha, chave)
+    enquanto noAtual != NULO e tamanho(noAtual.chaves) >= M:
+        noAtual = cindirNo(noAtual) // Mediana sobe para o pai`
       },
       bst: {
         title: "Árvore Binária de Busca (BST)",
@@ -485,6 +512,22 @@ funcao fibonacciTabela(n):
                 dp[v] = dp[v - c] + 1
     retorne dp[V]`
       },
+      dp_coinChange: {
+        title: "Problema do Troco Mínimo (Coin Change)",
+        description: "Calcula a quantidade mínima de moedas necessárias para totalizar uma quantia exata V, dadas as denominações disponíveis. Cada subproblema dp[v] armazena o menor número de moedas para atingir a quantia v.",
+        bestTime: "O(V · moedas)",
+        avgTime: "O(V · moedas)",
+        worstTime: "O(V · moedas)",
+        space: "O(V) vetor 1D",
+        pseudocode: `funcao trocoMinimo(moedas, V):
+    dp = vetor de tamanho V + 1 com INFINITO
+    dp[0] = 0
+    para v de 1 ate V:
+        para cada c em moedas:
+            se c <= v e dp[v - c] + 1 < dp[v]:
+                dp[v] = dp[v - c] + 1
+    retorne dp[V]`
+      },
       compression: {
         title: "Codificação de Huffman",
         description: "Algoritmo guloso clássico de compressão de dados sem perdas. Atribui códigos binários de tamanho variável aos caracteres conforme suas frequências, garantindo o prefix-free (nenhum código é prefixo de outro).",
@@ -534,7 +577,7 @@ funcao fibonacciTabela(n):
 
   'en': {
     appName: "Data Structures & Algorithms Visualizer",
-    appVersion: "v2.0.0",
+    appVersion: "v2.2.0",
     themeToggle: "Toggle Light/Dark Theme",
     categories: {
       arrays: "Array Algorithms",
@@ -672,6 +715,24 @@ funcao fibonacciTabela(n):
     z = createNode(key, COLOR=RED)
     bstInsert(T, z)
     fixupRBInsert(T, z)`
+      },
+      btree: {
+        title: "B-Tree (Multiway Balanced Search Tree)",
+        description: "A B-Tree is a self-balancing search tree data structure where each node can contain multiple keys and children. Widely used in database systems and file systems to minimize disk I/O by keeping all leaves strictly at the same level.",
+        properties: "1. Order M: Each node has at most M children and M - 1 keys.\n2. Minimum Keys: Every node (except root) has at least ⌈M/2⌉ - 1 keys.\n3. Balanced Height: All leaf nodes must be at the exact same depth.\n4. Split on Overflow: Inserting into a node with M - 1 keys splits it at the median key, which is promoted to the parent.\n5. Merge / Borrow on Underflow: Underflowing nodes borrow from siblings or merge with the parent separator key.",
+        bestTime: "O(1)",
+        avgTime: "O(log_M n)",
+        worstTime: "O(log_M n)",
+        space: "O(n)",
+        pseudocode: `function searchBTree(node, key):
+    i = 0
+    while i < node.keys.length and key > node.keys[i]:
+        i = i + 1
+    if i < node.keys.length and key == node.keys[i]:
+        return (node, i)
+    if node.isLeaf:
+        return null
+    return searchBTree(node.children[i], key)`
       },
       bst: {
         title: "Binary Search Tree (BST)",
@@ -955,6 +1016,22 @@ function search(list, key):
                 dp[i][w] = dp[i - 1][w]
     return dp[n][W]`
       },
+      dp_coinChange: {
+        title: "Coin Change Problem (Min Coins)",
+        description: "Determines the minimum number of coins needed to form an exact amount V given coin denominations. Uses 1D dynamic programming where dp[v] holds the minimum coins to achieve amount v.",
+        bestTime: "O(V · coins)",
+        avgTime: "O(V · coins)",
+        worstTime: "O(V · coins)",
+        space: "O(V) 1D array",
+        pseudocode: `function coinChange(coins, V):
+    dp = array[V + 1] filled with INFINITY
+    dp[0] = 0
+    for v from 1 to V:
+        for each c in coins:
+            if c <= v and dp[v - c] + 1 < dp[v]:
+                dp[v] = dp[v - c] + 1
+    return dp[V]`
+      },
       dp_coinchange: {
         title: "Coin Change Problem (Min Coins)",
         description: "Determines the minimum number of coins needed to form an exact amount V given coin denominations. Uses 1D dynamic programming where dp[v] holds the minimum coins to achieve amount v.",
@@ -1010,7 +1087,7 @@ function search(list, key):
 
   'es': {
     appName: "Visualizador de Estructuras de Datos y Algoritmos",
-    appVersion: "v2.0.0",
+    appVersion: "v2.2.0",
     themeToggle: "Cambiar Tema Claro/Oscuro",
     categories: {
       arrays: "Algoritmos en Arreglos",
@@ -1122,6 +1199,24 @@ function search(list, key):
         worstTime: "O(log n)",
         space: "O(n)",
         pseudocode: `// Inserción y rebalanceo rojinegro...`
+      },
+      btree: {
+        title: "Árbol-B (Árbol de Búsqueda Multicamino Equilibrado)",
+        description: "El Árbol-B es una estructura de datos de árbol auto-balanceada donde cada nodo puede contener múltiples claves y ramas. Ampliamente utilizado en sistemas de bases de datos y sistemas de archivos para minimizar operaciones de entrada/salida a disco.",
+        properties: "1. Orden M: Cada nodo posee como máximo M hijos y M - 1 claves.\n2. Ocupación Mínima: Todo nodo (excepto raíz) tiene al menos ⌈M/2⌉ - 1 claves.\n3. Altura Perfecta: Todas las hojas residen en el mismo nivel.\n4. División por Desbordamiento: Al llenarse, la clave mediana asciende al padre.",
+        bestTime: "O(1)",
+        avgTime: "O(log_M n)",
+        worstTime: "O(log_M n)",
+        space: "O(n)",
+        pseudocode: `funcion buscarArbolB(nodo, clave):
+    i = 0
+    mientras i < nodo.claves.length y clave > nodo.claves[i]:
+        i = i + 1
+    si i < nodo.claves.length y clave == nodo.claves[i]:
+        retornar (nodo, i)
+    si nodo.esHoja:
+        retornar NULO
+    retornar buscarArbolB(nodo.hijos[i], clave)`
       },
       bst: {
         title: "Árbol Binario de Búsqueda (BST)",
@@ -1357,6 +1452,22 @@ funcion buscar(lista, clave):
             si no:
                 dp[i][w] = dp[i - 1][w]
     retornar dp[n][W]`
+      },
+      dp_coinChange: {
+        title: "Coin Change Problem (Min Coins)",
+        description: "Determines the minimum number of coins needed to form an exact amount V given coin denominations. Uses 1D dynamic programming where dp[v] holds the minimum coins to achieve amount v.",
+        bestTime: "O(V · coins)",
+        avgTime: "O(V · coins)",
+        worstTime: "O(V · coins)",
+        space: "O(V) 1D array",
+        pseudocode: `function coinChange(coins, V):
+    dp = array[V + 1] filled with INFINITY
+    dp[0] = 0
+    for v from 1 to V:
+        for each c in coins:
+            if c <= v and dp[v - c] + 1 < dp[v]:
+                dp[v] = dp[v - c] + 1
+    return dp[V]`
       },
       dp_coinchange: {
         title: "Problema del Cambio Mínimo (Coin Change)",
