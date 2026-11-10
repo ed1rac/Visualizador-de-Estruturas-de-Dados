@@ -1,0 +1,36 @@
+name: CI Visualizador de Estruturas de Dados
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  lint-and-validate:
+    name: Lint & Validate Scripts
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 📥 Clonar Repositório
+      uses: actions/checkout@v4
+
+    - name: 🐍 Configurar Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: 🟢 Configurar Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+
+    - name: 🔍 Validar Scripts Python de Build
+      run: |
+        python -m py_compile build_standalone.py
+        python -m py_compile bundle_all.py
+
+    - name: 🔍 Validar Sintaxe JavaScript
+      run: |
+        node -c electron-main.js
